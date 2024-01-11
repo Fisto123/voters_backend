@@ -20,6 +20,7 @@ export const userModel = (sequelize, DataTypes) => {
     lastname: { type: DataTypes.STRING, allowNull: false },
     hashpassword: { type: DataTypes.STRING, allowNull: false },
     activationcode: { type: DataTypes.INTEGER, allowNull: true },
+    forgotcode: { type: DataTypes.INTEGER, allowNull: true },
     phonenumber: { type: DataTypes.STRING, allowNull: false, unique: true },
     status: {
       type: DataTypes.BOOLEAN,

@@ -4,14 +4,20 @@ import {
   deactivateUser,
   register,
   updateProfilePicture,
+  adminLogin,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/auth.js";
 const routes = express.Router({
   mergeParams: true,
 });
 
-routes.post("/register", register);
-routes.patch("/activateuser", activateUser);
-routes.patch("/deactivateuser", deactivateUser);
-routes.patch("/updateprofilepicture/:userid", updateProfilePicture);
+routes.post("/createaccount", register);
+routes.patch("/activateaccount", activateUser);
+routes.patch("/deactivateaccount", deactivateUser);
+routes.patch("/uploadprofilepicture/:userid", updateProfilePicture);
+routes.post("/adminlogin", adminLogin);
+routes.post("/requestforgotcode", forgotPassword);
+routes.post("/resetpassword", resetPassword);
 
 export default routes;
