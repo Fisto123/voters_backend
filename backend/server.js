@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import { errorHandler } from "./error/error.js";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
+import electionRoutes from "./routes/electionRoutes.js";
 
 const app = express();
 app.use(
@@ -23,6 +24,7 @@ const PORT = process.env.PORT || 8000; // Use 8000 if PORT is not defined in the
 
 //routes
 app.use("/voterz/v1", authRoutes);
+app.use("/voterz/v1", electionRoutes);
 
 //error
 app.use(errorHandler);

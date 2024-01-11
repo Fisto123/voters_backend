@@ -1,15 +1,15 @@
 import db from "../models/index.js";
-import { userSchema } from "../validations/user.js";
+import { userSchema } from "../validations/auth/user.js";
 import { generateCode } from "../utils/randomcode.js";
 import { sendActivationEmail } from "../utils/email.config.js";
 import moment from "moment";
 import bcrypt from "bcrypt";
-import { activationSchema } from "../validations/activation.js";
-import { deactivationSchema } from "../validations/deactivation.js";
-import { loginSchema } from "../validations/login.js";
+import { activationSchema } from "../validations/auth/activation.js";
+import { deactivationSchema } from "../validations/auth/deactivation.js";
+import { loginSchema } from "../validations/auth/login.js";
 import { generateToken } from "../utils/token.js";
-import { forgotSchema } from "../validations/forgot.js";
-import { resetSchema } from "../validations/reset.js";
+import { forgotSchema } from "../validations/auth/forgot.js";
+import { resetSchema } from "../validations/auth/reset.js";
 const User = db.user;
 
 export const register = async (req, res, next) => {
@@ -245,7 +245,6 @@ export const resetPassword = async (req, res, next) => {
       email,
     },
   });
-  console.log(user?.forgotcode);
   try {
     await resetSchema.validate(
       { email, forgotcode, password },
@@ -254,10 +253,10 @@ export const resetPassword = async (req, res, next) => {
       }
     );
     if (!user) {
-      return res.status(404).send({ message: "mail deosnt exist" });
+      return res.status(400).send({ message: "Email deosnt exist" });
     } else if (forgotcode != user?.forgotcode) {
       return res
-        .status(404)
+        .status(400)
         .send({ message: "Incorrect code, Please check your email" });
     } else {
       const hashpassword =

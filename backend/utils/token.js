@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
-console.log(process.env.secretkey);
+import dotenv from "dotenv";
+dotenv.config();
 export const generateToken = (user) => {
   const token = jwt.sign(
     {
@@ -9,9 +10,9 @@ export const generateToken = (user) => {
       status: user.status,
       email: user.email,
     },
-    "ZoJzc70XB0hXJNaPmnKkooOd5wiaJz0e",
+    process.env.secretkey,
     {
-      expiresIn: "1h",
+      expiresIn: "1d",
     }
   );
   return token;

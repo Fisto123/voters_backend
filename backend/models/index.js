@@ -56,4 +56,15 @@ db.election = ElectionModel(sequelize, DataTypes);
 //   console.log("Hard reset done!!");
 // });  "CASCADE",
 
+//RELATIONSHIP BETWEEN USER AND ELECTION
+db.user.hasMany(db.election, {
+  foreignKey: "adminid",
+});
+db.election.belongsTo(db.user, {
+  foreignKey: "adminid",
+  as: "admin",
+});
+
+//RELATIONSHIP BETWEEN USER AND ELECTION
+
 export default db;
