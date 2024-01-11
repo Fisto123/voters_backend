@@ -43,7 +43,6 @@ db.election = ElectionModel(sequelize, DataTypes);
 //   console.log("yes re-sync done!!");
 // });
 
-//await sequelize.sync({ alter: true });
 // await sequelize
 //   .sync({ alter: true })
 //   .then(() => {

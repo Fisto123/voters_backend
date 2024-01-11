@@ -16,9 +16,10 @@ app.use(
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 dotenv.config();
 
-let PORT = process.env.PORT;
+const PORT = process.env.PORT || 8000; // Use 8000 if PORT is not defined in the environment variables
 
 //routes
 app.use("/voterz/v1", authRoutes);
@@ -26,6 +27,6 @@ app.use("/voterz/v1", authRoutes);
 //error
 app.use(errorHandler);
 
-app.listen(8000, () => console.log(`server is running on port 7000`));
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 
 export default app;
