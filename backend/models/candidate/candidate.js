@@ -14,6 +14,7 @@ export const CandidateModel = (sequelize, DataTypes) => {
     profile: { type: DataTypes.STRING, allowNull: false },
     totalvotes: { type: DataTypes.INTEGER, defaultValue: 0 },
     profilepix: { type: DataTypes.STRING, allowNull: true },
+    status: { type: DataTypes.BOOLEAN, defaultValue: true },
   });
 
   return Candidate;

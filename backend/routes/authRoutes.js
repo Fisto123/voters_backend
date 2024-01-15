@@ -9,6 +9,7 @@ import {
   resetPassword,
   changePassword,
 } from "../controllers/auth.js";
+import { votersLogin } from "../controllers/voters.js";
 const routes = express.Router({
   mergeParams: true,
 });
@@ -22,4 +23,8 @@ routes.post("/requestforgotcode", forgotPassword);
 routes.post("/resetpassword", resetPassword);
 routes.patch("/changepassword", changePassword);
 
+//voters
+routes.post("/voterlogin", votersLogin);
+
+//voters routes
 export default routes;

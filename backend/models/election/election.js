@@ -17,6 +17,7 @@ export const ElectionModel = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    status: { type: DataTypes.BOOLEAN, defaultValue: true },
   });
 
   return Election;

@@ -63,6 +63,7 @@ export const editElection = async (req, res, next) => {
   }
 };
 
+/************* */
 export const publishElection = async (req, res, next) => {
   let { electionid, positionid } = req.params;
   let election = await Election.findOne({ where: { electionid } });

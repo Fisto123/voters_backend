@@ -1,9 +1,5 @@
 import express from "express";
-import {
-  createVote,
-  sendElectionCode,
-  uploadVoters,
-} from "../controllers/voters.js";
+import { sendElectionCode, uploadVoters } from "../controllers/voters.js";
 import { auth } from "../middleware/verify.js";
 import multer from "multer";
 
@@ -20,6 +16,5 @@ routes.post(
   uploadVoters
 );
 routes.post("/sendelectioncode/:electioncode", sendElectionCode);
-routes.post("/createvotes/:electionid/positionid:", createVote);
 
 export default routes;

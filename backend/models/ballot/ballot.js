@@ -7,11 +7,10 @@ export const BallotModel = (sequelize, DataTypes) => {
       primaryKey: true,
       allowNull: false,
     },
-    electionid: { type: DataTypes.INTEGER, allowNull: true },
-    positionid: { type: DataTypes.INTEGER, allowNull: true },
-    candidateid: { type: DataTypes.INTEGER, allowNull: true },
-    voterid: { type: DataTypes.INTEGER, allowNull: true },
-    datecreated: { type: DataTypes.DATE, allowNull: true },
+    electionid: { type: DataTypes.UUID, allowNull: false },
+    positionid: { type: DataTypes.INTEGER, allowNull: false },
+    candidateid: { type: DataTypes.INTEGER, allowNull: false },
+    voterid: { type: DataTypes.INTEGER, allowNull: false },
   });
 
   return Ballot;

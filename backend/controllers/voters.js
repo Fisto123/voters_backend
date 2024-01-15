@@ -4,10 +4,8 @@ import csv from "csv-parser";
 import db, { sequelize } from "../models/index.js";
 import { generate8DigitCode } from "../utils/randomcode.js";
 import { Op } from "sequelize";
-import {
-  sendActivationEmail,
-  sendActivationEmail2,
-} from "../utils/email.config.js";
+import { sendActivationEmail2 } from "../utils/email.config.js";
+import { votersloginSchema } from "../validations/auth/login.js";
 const Voter = db.evoter;
 
 // const processCSV = async (filePath, electionid, adminid) => {
@@ -211,7 +209,6 @@ const isCodeDuplicate = async (code, currentRecordId) => {
   return !!existingRecord;
 };
 export const uploadVoters = async (req, res, next) => {
-  console.log(req.file);
   try {
     const { electionid } = req.params;
     const adminid = req.user.id;
@@ -251,7 +248,7 @@ export const uploadVoters = async (req, res, next) => {
 
 // Example function to generate activation codes (replace with your actual implementation)
 
-export const sendElectionCode = async (req, res) => {
+export const sendElectionCode = async (req, res, next) => {
   let { electionid } = req.params;
   try {
     const uniqueEmails = await Voter.findAll({
@@ -287,7 +284,27 @@ export const sendElectionCode = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-export const createVote = async (req, res) => {
+
+export const votersLogin = async (req, res, next) => {
+  let { email, password } = req.body;
+  let user = await Voter.findOne({ where: { email } });
   try {
-  } catch (error) {}
+    await votersloginSchema.validate(
+      { email, password },
+      {
+        abortEarly: false,
+      }
+    );
+    if (!user) {
+      return res.status(404).send({ message: "Email doesnt exist" });
+    } else {
+      if (password !== user?.electioncode) {
+        return res.status(404).send({ message: "Login failed" });
+      } else {
+        return res.status(200).send(user);
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
 };

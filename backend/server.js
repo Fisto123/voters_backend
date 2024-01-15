@@ -8,6 +8,8 @@ import electionRoutes from "./routes/electionRoutes.js";
 import positionRoutes from "./routes/positionRoutes.js";
 import candidateRoutes from "./routes/candidateRoutes.js";
 import votersRoutes from "./routes/votersRoutes.js";
+import ballotRoutes from "./routes/ballotRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 app.use(
@@ -31,6 +33,8 @@ app.use("/voterz/v1", electionRoutes);
 app.use("/voterz/v1", positionRoutes);
 app.use("/voterz/v1", candidateRoutes);
 app.use("/voterz/v1", votersRoutes);
+app.use("/voterz/v1", ballotRoutes);
+app.use("/voterz/v1", userRoutes);
 
 //error
 app.use(errorHandler);

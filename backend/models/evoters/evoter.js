@@ -25,6 +25,7 @@ export const EvoterModel = (sequelize, DataTypes) => {
     codesent: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
     electioncode: { type: DataTypes.STRING, allowNull: false, unique: true },
     datecreated: { type: DataTypes.DATE, allowNull: true },
+    status: { type: DataTypes.BOOLEAN, defaultValue: true },
   });
 
   return Evoter;
