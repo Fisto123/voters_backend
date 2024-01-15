@@ -6,21 +6,14 @@ export const PositionModel = (sequelize, DataTypes) => {
       primaryKey: true,
       allowNull: false,
     },
-    adminid: { type: DataTypes.INTEGER, allowNull: true },
-    electionid: { type: DataTypes.INTEGER, allowNull: true },
-    position: { type: DataTypes.STRING, allowNull: true },
-    votersinstructions: { type: DataTypes.STRING, allowNull: true },
-    votenumber: { type: DataTypes.INTEGER, allowNull: true },
-    datestart: { type: DataTypes.DATE, allowNull: true },
-    dateend: { type: DataTypes.DATE, allowNull: true },
-    timestart: { type: DataTypes.DATE, allowNull: true },
-    timeend: { type: DataTypes.DATE, allowNull: true },
-    published: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
+    adminid: { type: DataTypes.INTEGER, allowNull: false },
+    electionid: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
-    captionimage: { type: DataTypes.STRING, allowNull: true },
+    positionname: { type: DataTypes.STRING, allowNull: false },
+    votersinstructions: { type: DataTypes.STRING, allowNull: true },
+    votenumber: { type: DataTypes.INTEGER, defaultValue: 1 },
   });
 
   return Position;

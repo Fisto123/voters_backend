@@ -7,3 +7,11 @@ export const generateCode = () => {
   });
   return number;
 };
+
+export const generate8DigitCode = () => {
+  let number = randomstring.generate({
+    length: 8,
+    charset: "numeric",
+  });
+  return number;
+};

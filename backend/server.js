@@ -5,6 +5,9 @@ import { errorHandler } from "./error/error.js";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import electionRoutes from "./routes/electionRoutes.js";
+import positionRoutes from "./routes/positionRoutes.js";
+import candidateRoutes from "./routes/candidateRoutes.js";
+import votersRoutes from "./routes/votersRoutes.js";
 
 const app = express();
 app.use(
@@ -25,6 +28,9 @@ const PORT = process.env.PORT || 8000; // Use 8000 if PORT is not defined in the
 //routes
 app.use("/voterz/v1", authRoutes);
 app.use("/voterz/v1", electionRoutes);
+app.use("/voterz/v1", positionRoutes);
+app.use("/voterz/v1", candidateRoutes);
+app.use("/voterz/v1", votersRoutes);
 
 //error
 app.use(errorHandler);

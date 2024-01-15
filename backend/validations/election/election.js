@@ -16,7 +16,12 @@ export const electionSchema = yup.object().shape({
     .min(5, "election details must be not be less 5 characters")
     .max(500, "election details must not be more than 500 characters"),
   captionimage: yup.string().required("election details is required").trim(),
-  datestart: yup
+  datetimestart: yup
+    .date()
+    .required("date is required")
+    .min(new Date(), "Date cannot be earlier than today")
+    .max(new Date("2024-12-31"), "Date cannot be later than 2024-12-31"),
+  datetimeend: yup
     .date()
     .required("date is required")
     .min(new Date(), "Date cannot be earlier than today")
@@ -34,7 +39,11 @@ export const editElectionSchema = yup.object().shape({
     .min(5, "election details must be not be less 5 characters")
     .max(500, "election details must not be more than 500 characters"),
   captionimage: yup.string().trim(),
-  datestart: yup
+  datetimestart: yup
+    .date()
+    .min(new Date(), "Date cannot be earlier than today")
+    .max(new Date("2024-12-31"), "Date cannot be later than 2024-12-31"),
+  datetimeend: yup
     .date()
     .min(new Date(), "Date cannot be earlier than today")
     .max(new Date("2024-12-31"), "Date cannot be later than 2024-12-31"),

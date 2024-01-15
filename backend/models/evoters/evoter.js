@@ -6,7 +6,7 @@ export const EvoterModel = (sequelize, DataTypes) => {
       primaryKey: true,
       allowNull: false,
     },
-    electionid: { type: DataTypes.INTEGER, allowNull: true },
+    electionid: { type: DataTypes.UUID, allowNull: true },
     idnumber: { type: DataTypes.STRING, allowNull: true },
     email: {
       type: DataTypes.STRING,
@@ -17,13 +17,13 @@ export const EvoterModel = (sequelize, DataTypes) => {
         },
       },
     },
-    firstname: { type: DataTypes.STRING, allowNull: true },
-    lastname: { type: DataTypes.STRING, allowNull: true },
-    profile: { type: DataTypes.STRING, allowNull: true },
-    phonenumber: { type: DataTypes.STRING, allowNull: true },
+    firstname: { type: DataTypes.STRING, allowNull: false },
+    lastname: { type: DataTypes.STRING, allowNull: false },
+    profile: { type: DataTypes.STRING, allowNull: false },
+    phonenumber: { type: DataTypes.STRING, allowNull: false },
     profilepicture: { type: DataTypes.STRING, allowNull: true },
     codesent: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
-    electioncode: { type: DataTypes.INTEGER, allowNull: true },
+    electioncode: { type: DataTypes.STRING, allowNull: false, unique: true },
     datecreated: { type: DataTypes.DATE, allowNull: true },
   });
 

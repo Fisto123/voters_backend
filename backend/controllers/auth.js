@@ -8,7 +8,7 @@ import { activationSchema } from "../validations/auth/activation.js";
 import { deactivationSchema } from "../validations/auth/deactivation.js";
 import { loginSchema } from "../validations/auth/login.js";
 import { generateToken } from "../utils/token.js";
-import { forgotSchema } from "../validations/auth/forgot.js";
+import { changeSchema, forgotSchema } from "../validations/auth/forgot.js";
 import { resetSchema } from "../validations/auth/reset.js";
 const User = db.user;
 
@@ -264,6 +264,38 @@ export const resetPassword = async (req, res, next) => {
         (await bcrypt.hash(process.env.secretPrefix + password, 10));
       await User.update({ hashpassword }, { where: { email: user?.email } });
       return res.status(200).send("Password changed successfully");
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  let { email, oldpassword, newpassword } = req.body;
+  let user = await User.findOne({ where: { email } });
+  try {
+    await changeSchema.validate(
+      { email, newpassword },
+      {
+        abortEarly: false,
+      }
+    );
+    if (!user) {
+      return res.status(404).send("Email doesnt exist");
+    } else {
+      const ispasswordCorrect = await bcrypt.compare(
+        process.env.secretPrefix + oldpassword,
+        user.hashpassword
+      );
+      if (!ispasswordCorrect) {
+        return res.status(400).send("Old password is not correct");
+      } else {
+        const hashpassword =
+          newpassword &&
+          (await bcrypt.hash(process.env.secretPrefix + newpassword, 10));
+        await User.update({ hashpassword }, { where: { email: user?.email } });
+        return res.status(200).send("Password changed successfully");
+      }
     }
   } catch (error) {
     next(error);

@@ -11,7 +11,8 @@ export const ElectionModel = (sequelize, DataTypes) => {
     electionname: { type: DataTypes.STRING, allowNull: false },
     details: { type: DataTypes.STRING, allowNull: false },
     captionimage: { type: DataTypes.STRING, allowNull: false },
-    datestart: { type: DataTypes.DATE, allowNull: false },
+    datetimestart: { type: DataTypes.DATE, allowNull: true },
+    datetimeend: { type: DataTypes.DATE, allowNull: true },
     published: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

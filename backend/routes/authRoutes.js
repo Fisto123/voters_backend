@@ -7,6 +7,7 @@ import {
   adminLogin,
   forgotPassword,
   resetPassword,
+  changePassword,
 } from "../controllers/auth.js";
 const routes = express.Router({
   mergeParams: true,
@@ -19,5 +20,6 @@ routes.patch("/uploadprofilepicture/:userid", updateProfilePicture);
 routes.post("/adminlogin", adminLogin);
 routes.post("/requestforgotcode", forgotPassword);
 routes.post("/resetpassword", resetPassword);
+routes.patch("/changepassword", changePassword);
 
 export default routes;
