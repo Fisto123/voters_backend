@@ -5,6 +5,7 @@ import {
   editElection,
   publishElection,
 } from "../controllers/election.js";
+import { ElectionData } from "../controllers/user.js";
 const routes = express.Router({
   mergeParams: true,
 });
@@ -12,5 +13,6 @@ const routes = express.Router({
 routes.post("/createelection", auth, createElection);
 routes.patch("/editelection/:electionid", auth, editElection);
 routes.patch("/publishelection/:positionid/:electionid", auth, publishElection);
+routes.get("/electiondata/:electionid", ElectionData);
 
 export default routes;

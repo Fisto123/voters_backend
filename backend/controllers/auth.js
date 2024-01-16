@@ -13,8 +13,7 @@ import { resetSchema } from "../validations/auth/reset.js";
 const User = db.user;
 
 export const register = async (req, res, next) => {
-  const { email, firstname, lastname, phonenumber, password, profilepicture } =
-    req.body;
+  const { email, firstname, lastname, phonenumber, password } = req.body;
 
   try {
     await userSchema.validate(
@@ -48,13 +47,12 @@ export const register = async (req, res, next) => {
           lastname,
           phonenumber,
           hashpassword,
-          profilepicture,
           activationcode,
         });
       }
     }
     return res.status(200).json({
-      message: "user registered successfully",
+      message: "Successful. Activation code sent to your email",
     });
   } catch (error) {
     next(error);
@@ -70,14 +68,14 @@ export const activateUser = async (req, res, next) => {
     );
     let user = await User.findOne({ where: { email } });
     if (user.status) {
-      return res.status(409).json({
-        message: "Your account has already been activated",
+      return res.status(200).json({
+        message: "Account already activated. please login",
       });
     }
     if (activationcode != user.activationcode) {
       return res
         .status(400)
-        .json({ message: "Activation code is not correct" });
+        .json({ message: "Invalid activation code. Please check your email" });
     } else {
       await User.update(
         { status: true, dateactivated: moment().format("YYYY-MM-DD HH:mm:ss") },

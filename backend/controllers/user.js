@@ -65,14 +65,89 @@ export const deleteCandidate = async (req, res, next) => {
       },
       { where: { id: candidateid, electionid } }
     );
-    return res.status(200).send({ message: "candidate deleted successfully" });
+    return res.status(200).send({ message: "Candidate deleted successfully" });
   }
   try {
   } catch (error) {
     next(error);
   }
 };
+export const ElectionData = async (req, res, next) => {
+  let { electionid } = req.params;
+  try {
+    let candidates = await Candidate.findAll({
+      where: { electionid },
+      attributes: ["positionid", "firstname", "lastname"],
+    });
 
-// /deletecandidate/:candidateid/:electionid/:adminid
+    // Use Promise.all to wait for all the promises to resolve
+    let results = await Promise.all(
+      candidates.map(async (candidate) => {
+        const positionDetails = await Position.findAll({
+          where: { id: candidate.positionid },
+          attributes: ["positionname"],
+        });
+        console.log(positionDetails);
 
-// /deleteevoter/:idnumber/electionid/:adminid
+        // Extract the positionname from the first item in the array
+        const positionName =
+          positionDetails.length > 0 ? positionDetails[0].positionname : null;
+
+        return {
+          firstname: candidate.firstname,
+          lastname: candidate.lastname,
+          position: positionName,
+        };
+      })
+    );
+
+    return res.status(200).send(results);
+  } catch (error) {
+    next(error);
+  }
+};
+
+//  [
+//    {
+//      positionid: 1,
+//      positionname: "President",
+//      candidates: [
+//        {
+//          candidateid: 34,
+//          fullname: "Babajide",
+//          profilepicture:
+//            "https://staff.yabatech.edu.ng/staffimgg/Passport_redBG.jpg",
+//        },
+//        {
+//          candidateid: 48,
+//          fullname: "Chuckwu",
+//          profilepicture:
+//            "https://staff.yabatech.edu.ng/staffimgg/1582018875mypass.jpg",
+//        },
+//      ],
+//    },
+//    {
+//      positionid: 2,
+//      positionname: "Vice President",
+//      candidates: [
+//        {
+//          candidateid: 12,
+//          fullname: "Simisolu",
+//          profilepicture:
+//            "https://staff.yabatech.edu.ng/staffimgg/1582018875mypass.jpg",
+//        },
+//        {
+//          candidateid: 120,
+//          fullname: "Dejo Tufulu",
+//          profilepicture:
+//            "https://staff.yabatech.edu.ng/staffimgg/Passport_redBG.jpg",
+//        },
+//        {
+//          candidateid: 99,
+//          fullname: "Fisto Law",
+//          profilepicture:
+//            "https://staff.yabatech.edu.ng/staffimgg/1582018875mypass.jpg",
+//        },
+//      ],
+//    },
+//  ];

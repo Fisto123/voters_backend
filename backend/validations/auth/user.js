@@ -39,6 +39,6 @@ export const userSchema = yup.object().shape({
     .matches(/^[0]\d{10,15}$/, {
       message: "Invalid Nigerian phone number",
     })
-    .min(11, "Phone number must be at least 11 characters")
-    .max(16, "Phone number must be at least 16 characters"),
+    .min(10, "Phone number must be at least 10 characters")
+    .max(15, "Phone number must be at least 15 characters"),
 });

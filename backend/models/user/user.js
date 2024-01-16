@@ -29,7 +29,6 @@ export const userModel = (sequelize, DataTypes) => {
     },
     dateactivated: { type: DataTypes.DATE, allowNull: true },
     datedeactivated: { type: DataTypes.DATE, allowNull: true },
-    profilepicture: { type: DataTypes.STRING, allowNull: true },
   });
 
   return User;

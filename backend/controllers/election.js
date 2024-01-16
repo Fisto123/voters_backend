@@ -6,12 +6,25 @@ import {
 const Election = db.election;
 
 export const createElection = async (req, res, next) => {
-  const { electionname, details, captionimage, datetimestart, datetimeend } =
-    req.body;
+  const {
+    electionname,
+    electionacronym,
+    captionimage,
+    generalinstruction,
+    startdate,
+    enddate,
+  } = req.body;
   try {
     let id = req.user.id;
     await electionSchema.validate(
-      { electionname, details, captionimage, datetimestart, datetimeend },
+      {
+        electionname,
+        electionacronym,
+        // captionimage,
+        generalinstruction,
+        startdate,
+        enddate,
+      },
       {
         abortEarly: false,
       }
@@ -20,10 +33,11 @@ export const createElection = async (req, res, next) => {
     await Election.create({
       adminid: id,
       electionname,
-      details,
+      electionacronym,
+      generalinstruction,
       captionimage,
-      datetimestart,
-      datetimeend,
+      startdate,
+      enddate,
     });
     return res.status(200).send("election created successfully");
   } catch (error) {
@@ -32,15 +46,30 @@ export const createElection = async (req, res, next) => {
 };
 export const editElection = async (req, res, next) => {
   let { electionid } = req.params;
-  const { electionname, details, captionimage, datetimestart, datetimeend } =
-    req.body;
+  const {
+    electionname,
+    electionacronym,
+    generalinstruction,
+    captionimage,
+    datetimeend,
+    startdate,
+    enddate,
+  } = req.body;
 
   try {
     let id = req.user.id;
     let election = await Election.findOne({ where: { electionid } });
 
     await editElectionSchema.validate(
-      { electionname, details, captionimage, datetimestart, datetimeend },
+      {
+        electionname,
+        electionacronym,
+        generalinstruction,
+        captionimage,
+        datetimeend,
+        startdate,
+        enddate,
+      },
       { abortEarly: false }
     );
 
@@ -52,7 +81,14 @@ export const editElection = async (req, res, next) => {
         .send({ message: "You can only update your own resource" });
     } else {
       await Election.update(
-        { electionname, details, captionimage, datetimestart, datetimeend },
+        {
+          electionname,
+          electionacronym,
+          captionimage,
+          generalinstruction,
+          startdate,
+          enddate,
+        },
         { where: { electionid } }
       );
 
@@ -63,12 +99,10 @@ export const editElection = async (req, res, next) => {
   }
 };
 
-/************* */
 export const publishElection = async (req, res, next) => {
   let { electionid, positionid } = req.params;
   let election = await Election.findOne({ where: { electionid } });
   try {
-    //conn between electionid and positionid
     let {
       votersinstruction,
       votenumber,
@@ -76,13 +110,6 @@ export const publishElection = async (req, res, next) => {
       datetimeend,
       published,
     } = req.body;
-    console.log(
-      votersinstruction,
-      votenumber,
-      datetimestart,
-      datetimeend,
-      published
-    );
     let id = req.user.id;
     if (id !== election.adminid) {
       return res

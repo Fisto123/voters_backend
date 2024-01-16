@@ -79,4 +79,15 @@ db.position.belongsTo(db.election, {
 
 //RELATIONSHIP BETWEEN POSITION AND ELECTION
 
+// RELATIONSHIP BETWEEN CANDIDATE AND POSITION
+// db.candidate.hasMany(db.position, {
+//   foreignKey: "positionid",
+//   as: "positions", // Use the same alias on the hasMany side
+// });
+
+// db.position.belongsTo(db.candidate, {
+//   foreignKey: "id",
+//   as: "positions", // Use the same alias on the belongsTo side
+// });
+
 export default db;

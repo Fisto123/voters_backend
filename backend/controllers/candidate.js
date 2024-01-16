@@ -27,7 +27,6 @@ export const createCandidates = async (req, res, next) => {
   }
 };
 
-//BE PATCH /uploadcandidatepicture/:candidateid/:electionid/:positionid
 export const updateCandidatePicture = async (req, res, next) => {
   let { candidateid, electionid, positionid } = req.params;
   let { profilepix } = req.body;
