@@ -40,9 +40,9 @@ db.user = userModel(sequelize, DataTypes);
 db.election = ElectionModel(sequelize, DataTypes);
 //i want to ask you for the best pratice while uploading large amount of datasets using node.. am building an election app where i have to upload the voters information using csv and using the election code to vote... how can i actually se
 
-// db.sequelize.sync({ force: false }).then(() => {
-//   console.log("yes re-sync done!!");
-// });
+db.sequelize.sync({ force: false }).then(() => {
+  console.log("yes re-sync done!!");
+});
 
 // await sequelize
 //   .sync({ alter: true })
@@ -69,25 +69,26 @@ db.election.belongsTo(db.user, {
 //RELATIONSHIP BETWEEN USER AND ELECTION
 
 //RELATIONSHIP BETWEEN POSITION AND ELECTION
-db.election.hasMany(db.position, {
-  foreignKey: "electionid",
-});
-db.position.belongsTo(db.election, {
-  foreignKey: "electionid",
-  as: "elect",
-});
+// db.candidate.hasMany(db.position, {
+//   foreignKey: "positionid",
+// });
+// db.position.belongsTo(db.election, {
+//   foreignKey: "positionid",
+//   as: "pos",
+// });
 
 //RELATIONSHIP BETWEEN POSITION AND ELECTION
 
-// RELATIONSHIP BETWEEN CANDIDATE AND POSITION
-// db.candidate.hasMany(db.position, {
+// RELATIONSHIP BETWEEN POSITION AND CANDIDATE
+// db.position.hasMany(db.candidate, {
 //   foreignKey: "positionid",
-//   as: "positions", // Use the same alias on the hasMany side
+//   as: "candidates", // Optional alias for the relation
+// });
+// db.candidate.belongsTo(db.position, {
+//   foreignKey: "positionid",
+//   as: "position", // Optional alias for the relation
 // });
 
-// db.position.belongsTo(db.candidate, {
-//   foreignKey: "id",
-//   as: "positions", // Use the same alias on the belongsTo side
-// });
+// RELATIONSHIP BETWEEN CANDIDATE AND POSITION
 
 export default db;

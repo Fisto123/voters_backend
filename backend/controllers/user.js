@@ -40,16 +40,22 @@ export const deleteElection = async (req, res, next) => {
 };
 
 export const deleteposition = async (req, res, next) => {
-  let { electionid, positionid } = req.params;
-  if (electionid) {
-    await Position.update(
-      {
-        status: false,
-      },
-      { where: { electionid, id: positionid } }
-    );
-    return res.status(200).send({ message: "Position deleted successfully" });
+  let { positionid } = req.params;
+  let position = await Position.findOne({ where: { id: positionid } });
+  if (req.user.id !== position.adminid) {
+    return res.status(403).send("Can only delete your resource");
+  } else {
+    if (positionid) {
+      await Position.update(
+        {
+          status: false,
+        },
+        { where: { id: positionid } }
+      );
+      return res.status(200).send("Position deleted successfully");
+    }
   }
+
   try {
   } catch (error) {
     next(error);

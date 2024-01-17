@@ -12,7 +12,7 @@ export const PositionModel = (sequelize, DataTypes) => {
       allowNull: false,
     },
     positionname: { type: DataTypes.STRING, allowNull: false },
-    votersinstructions: { type: DataTypes.STRING, allowNull: true },
+    votersinstruction: { type: DataTypes.STRING, allowNull: true },
     votenumber: { type: DataTypes.INTEGER, defaultValue: 1 },
     status: { type: DataTypes.BOOLEAN, defaultValue: true },
   });

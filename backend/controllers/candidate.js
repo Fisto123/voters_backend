@@ -2,25 +2,26 @@ import db from "../models/index.js";
 
 // /addcandidates/:electionid/:positionid
 const Candidate = db.candidate;
-export const createCandidates = async (req, res, next) => {
-  const { candidates } = req.body;
+const Position = db.position;
+
+export const createCandidate = async (req, res, next) => {
+  const { fullname, profile, captionimage } = req.body;
   let { electionid, positionid } = req.params;
   let adminid = req.user.id;
 
-  const candidateDataArray = candidates.map((data) => ({
-    electionid,
-    positionid,
-    firstname: data.firstname,
-    lastname: data.lastname,
-    profile: data.profile,
-    adminid,
-  }));
   try {
     if (electionid && positionid && adminid) {
-      await Candidate.bulkCreate(candidateDataArray);
-      return res.status(200).send("candidates created successfully");
+      await Candidate.create({
+        fullname,
+        profile,
+        captionimage,
+        electionid,
+        adminid,
+        positionid,
+      });
+      return res.status(200).send("success");
     } else {
-      return res.status(404).send("unable to post position");
+      return res.status(404).send("Unable to post candidate");
     }
   } catch (error) {
     next(error);
@@ -63,3 +64,21 @@ export const updateCandidatePicture = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getCandidates = async (req, res, next) => {
+  let { positionid } = req.params;
+  let singleposition = await Position.findOne({ where: { id: positionid } });
+  try {
+    if (!singleposition) {
+      return res.status(404).send({ message: "invalid position" });
+    } else {
+      let position = await Candidate.findAll({
+        where: { positionid, adminid: req.user.id },
+      });
+      return res.status(200).send(position);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+////positionid to get candidate details  /candidates

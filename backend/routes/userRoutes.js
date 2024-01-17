@@ -10,10 +10,10 @@ const routes = express.Router({
   mergeParams: true,
 });
 
-routes.patch("/deletevoter/:userid", auth, deleteVoter);
-routes.patch("/deleteelection/:electionid", auth, deleteElection);
-routes.patch("/deleteposition/:positionid/:electionid", auth, deleteposition);
-routes.patch(
+routes.delete("/deletevoter/:userid", auth, deleteVoter);
+routes.delete("/deleteelection/:electionid", auth, deleteElection);
+routes.delete("/deleteposition/:positionid", auth, deleteposition);
+routes.delete(
   "/deleteCandidate/:candidateid/:electionid",
   auth,
   deleteCandidate

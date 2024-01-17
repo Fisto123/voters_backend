@@ -20,7 +20,7 @@ export const createElection = async (req, res, next) => {
       {
         electionname,
         electionacronym,
-        // captionimage,
+        captionimage,
         generalinstruction,
         startdate,
         enddate,
@@ -128,6 +128,41 @@ export const publishElection = async (req, res, next) => {
           where: { electionid },
         }
       );
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminElection = async (req, res, next) => {
+  let election = await Election.findAll({
+    where: { adminid: req.user.id },
+    order: [["createdAt", "DESC"]],
+  });
+  try {
+    return res.status(200).send(election);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getElection = async (req, res, next) => {
+  let { electionid } = req.params;
+  let elect = await Election.findOne({ where: { electionid } });
+  try {
+    if (!elect) {
+      return res.status(404).send({ message: "Election doesnt exist " });
+    } else {
+      if (req.user.id === elect.adminid) {
+        let election = await Election.findOne({
+          where: { electionid },
+        });
+        return res.status(200).send(election);
+      } else {
+        return res
+          .status(404)
+          .send({ message: "can only view your election details" });
+      }
     }
   } catch (error) {
     next(error);

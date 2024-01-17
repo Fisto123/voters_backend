@@ -10,7 +10,7 @@ export const electionSchema = yup.object().shape({
     .min(5, "election name must be not be less 5 characters")
     .max(100, "election name must not be more than 100 characters"),
   electionacronym: yup.string().required("election acronym is required").trim(),
-  ///captionimage: yup.string().required("caption image is required"),
+  captionimage: yup.string().required("caption image is required"),
   generalinstruction: yup
     .string()
     .required("General instruction is required")
