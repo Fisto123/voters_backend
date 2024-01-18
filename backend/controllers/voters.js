@@ -7,6 +7,7 @@ import { Op } from "sequelize";
 import { sendActivationEmail2 } from "../utils/email.config.js";
 import { votersloginSchema } from "../validations/auth/login.js";
 const Voter = db.evoter;
+const election = db.election;
 
 // const processCSV = async (filePath, electionid, adminid) => {
 //   return new Promise((resolve, reject) => {
@@ -120,22 +121,94 @@ const Voter = db.evoter;
 //     });
 //   });
 // };
+// const processCSV = async (filePath, electionid, adminid, batchSize = 200) => {
+//   return new Promise((resolve, reject) => {
+//     let currentMaxId = 0; // Variable to keep track of the current maximum id
+//     const results = [];
+//     let currentBatch = [];
+
+//     const processBatch = async (batch) => {
+//       try {
+//         // Adjust the id field in the batch based on the current maximum id
+//         const adjustedBatch = batch.map((item) => {
+//           item.id = ++currentMaxId;
+//           return item;
+//         });
+
+//         // Save the data to the database
+//         await Voter.bulkCreate(adjustedBatch);
+//       } catch (error) {
+//         // Reject the promise if there's an error
+//         reject(error);
+//       }
+//     };
+
+//     const stream = fs
+//       .createReadStream(filePath)
+//       .pipe(csv())
+//       .on("data", async (data) => {
+//         const { fullname, email,idnumber, profile, phonenumber } = data;
+
+//         currentBatch.push({
+//           id: null,
+//           electionid,
+//           fullname,
+//           email,
+//           profile,
+//           idnumber,
+//           phonenumber,
+//           electioncode: generate8DigitCode(),
+//           adminid,
+//         });
+
+//         if (currentBatch.length === batchSize) {
+//           // Process the current batch asynchronously and reset it
+//           results.push(processBatch([...currentBatch]));
+//           currentBatch = [];
+
+//           // Wait for the previous batch to complete before processing the next one
+//           await Promise.all(results);
+//         }
+//       })
+//       .on("end", async () => {
+//         try {
+//           // Process the remaining data in the last batch
+//           if (currentBatch.length > 0) {
+//             results.push(processBatch([...currentBatch]));
+//           }
+
+//           // Wait for any remaining batches to complete
+//           await Promise.all(results);
+
+//           // Resolve the promise when done
+//           resolve();
+//         } catch (error) {
+//           // Reject the promise if there's an error
+//           reject(error);
+//         } finally {
+//           // Remove the temporary file after processing
+//           fs.unlinkSync(filePath);
+//         }
+//       });
+
+//     // Handle stream errors
+//     stream.on("error", (error) => {
+//       reject(error);
+//     });
+//   });
+// };
+
 const processCSV = async (filePath, electionid, adminid, batchSize = 200) => {
   return new Promise((resolve, reject) => {
     let currentMaxId = 0; // Variable to keep track of the current maximum id
     const results = [];
     let currentBatch = [];
+    let isFirstRow = true; // Flag to track the first row
 
     const processBatch = async (batch) => {
       try {
-        // Adjust the id field in the batch based on the current maximum id
-        const adjustedBatch = batch.map((item) => {
-          item.id = ++currentMaxId;
-          return item;
-        });
-
         // Save the data to the database
-        await Voter.bulkCreate(adjustedBatch);
+        await Voter.bulkCreate(batch);
       } catch (error) {
         // Reject the promise if there's an error
         reject(error);
@@ -144,18 +217,35 @@ const processCSV = async (filePath, electionid, adminid, batchSize = 200) => {
 
     const stream = fs
       .createReadStream(filePath)
-      .pipe(csv())
+      .pipe(
+        csv({
+          headers: [
+            "id",
+            "fullname",
+            "email",
+            "idnumber",
+            "phonenumber",
+            "profile",
+          ],
+          mapHeaders: ({ header }) => header.trim(),
+        })
+      )
       .on("data", async (data) => {
-        const { firstname, lastname, email, profile, phonenumber } = data;
+        // Skip the first row (header row)
+        if (isFirstRow) {
+          isFirstRow = false;
+          return;
+        }
+
+        const { id, fullname, email, idnumber, phonenumber, profile } = data;
 
         currentBatch.push({
-          id: null,
           electionid,
-          firstname,
-          lastname,
+          fullname,
           email,
-          profile,
+          idnumber,
           phonenumber,
+          profile,
           electioncode: generate8DigitCode(),
           adminid,
         });
@@ -211,13 +301,26 @@ const isCodeDuplicate = async (code, currentRecordId) => {
 export const uploadVoters = async (req, res, next) => {
   try {
     const { electionid } = req.params;
+    let elect = await election.findOne({
+      where: { electionid, adminid: req.user.id },
+    });
     const adminid = req.user.id;
 
     const filePath = req.file.path;
+    if (!req.file) {
+      return res.status(404).send({ message: "no file uploaded" });
+    }
+    if (!elect) {
+      return res.status(404).send({ message: "election doesnt exist" });
+    } else if (elect.adminid !== req.user.id) {
+      return res
+        .status(403)
+        .send({ message: "cant use other peoples resource" });
+    } else {
+      await processCSV(filePath, electionid, adminid);
 
-    await processCSV(filePath, electionid, adminid);
-
-    res.status(200).send("Voters uploaded successfully");
+      return res.status(200).send("Voters uploaded successfully");
+    }
   } catch (error) {
     next(error);
   }
@@ -248,6 +351,46 @@ export const uploadVoters = async (req, res, next) => {
 
 // Example function to generate activation codes (replace with your actual implementation)
 
+// export const sendElectionCode = async (req, res, next) => {
+//   let { electionid } = req.params;
+//   try {
+//     const uniqueEmails = await Voter.findAll({
+//       attributes: [
+//         "email",
+//         [sequelize.fn("MAX", sequelize.col("electioncode")), "electioncode"],
+//         [sequelize.fn("MAX", sequelize.col("fullname")), "fullname"],
+//       ],
+//       where: { codesent: false, electionid },
+//       group: ["email"],
+//     });
+
+//     for (const { email, electioncode, fullname } of uniqueEmails) {
+//       const emailSentSuccessfully = sendActivationEmail2(
+//         email,
+//         fullname,
+//         "send",
+//         electioncode
+//       );
+//       if (emailSentSuccessfully) {
+//         const totalcodesent = await Voter.count({
+//           where: { electionid, adminid: req.user.id, codesent: true },
+//         });
+//         const totalvoters = await Voter.count({
+//           where: { electionid, adminid: req.user.id, status: 1 },
+//         });
+//         await Voter.update(
+//           { codesent: true },
+//           { where: { email, electionid } }
+//         );
+//         res.status(200).send({ totalcodesent, totalvoters });
+//       }
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
+
 export const sendElectionCode = async (req, res, next) => {
   let { electionid } = req.params;
   try {
@@ -255,18 +398,16 @@ export const sendElectionCode = async (req, res, next) => {
       attributes: [
         "email",
         [sequelize.fn("MAX", sequelize.col("electioncode")), "electioncode"],
-        [sequelize.fn("MAX", sequelize.col("firstname")), "firstname"],
-        [sequelize.fn("MAX", sequelize.col("lastname")), "lastname"],
+        [sequelize.fn("MAX", sequelize.col("fullname")), "fullname"],
       ],
       where: { codesent: false, electionid },
       group: ["email"],
     });
 
-    for (const { email, electioncode, firstname, lastname } of uniqueEmails) {
+    for (const { email, electioncode, fullname } of uniqueEmails) {
       const emailSentSuccessfully = sendActivationEmail2(
         email,
-        firstname,
-        lastname,
+        fullname,
         "send",
         electioncode
       );
@@ -275,10 +416,18 @@ export const sendElectionCode = async (req, res, next) => {
           { codesent: true },
           { where: { email, electionid } }
         );
+        // totalcodesent++; // Increment here if you want to count how many emails were successfully sent
       }
     }
 
-    res.status(200).send("Activation emails sent successfully");
+    const totalvoters = await Voter.count({
+      where: { electionid, adminid: req.user.id, status: 1 },
+    });
+    const totalcodesent = await Voter.count({
+      where: { electionid, adminid: req.user.id, codesent: true },
+    });
+
+    res.status(200).send({ totalcodesent, totalvoters });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -297,12 +446,204 @@ export const votersLogin = async (req, res, next) => {
     );
     if (!user) {
       return res.status(404).send({ message: "Email doesnt exist" });
+    } else if (user.deletestatus === true) {
+      return res.status(404).json({
+        message: "Account deactivated. Please contact the admin",
+      });
     } else {
       if (password !== user?.electioncode) {
         return res.status(404).send({ message: "Login failed" });
       } else {
         return res.status(200).send(user);
       }
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getElectionVoter = async (req, res, next) => {
+  let { electionid } = req.params;
+  try {
+    let electionexist = await election.findOne({ where: { electionid } });
+    if (!electionexist) {
+      return res.status(404).send({ message: "election doesnt exist" });
+    } else if (electionexist.adminid !== req.user.id) {
+      return res
+        .status(403)
+        .send({ message: "You are only permitted to view your resource" });
+    } else {
+      const totalvoters = await Voter.count({
+        where: { electionid, adminid: req.user.id, status: 1 },
+      });
+      const totalcodesent = await Voter.count({
+        where: { electionid, adminid: req.user.id, codesent: true },
+      });
+      const page = parseInt(req.query.page) || 1;
+      const pageSize = parseInt(req.query.pageSize) || 10;
+      const offset = (page - 1) * pageSize;
+      const totalPages = Math.ceil(totalvoters / Number(pageSize));
+      let voters = await Voter.findAll({
+        where: { electionid, adminid: req.user.id, status: 1 },
+        offset,
+        limit: pageSize,
+      });
+
+      return res
+        .status(200)
+        .send({ voters, totalvoters, totalcodesent, totalPages });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteElectionVoters = async (req, res, next) => {
+  let { electionid } = req.params;
+  let electionexist = await election.findOne({ where: { electionid } });
+
+  try {
+    if (!electionexist) {
+      return res.status(404).send({ message: "election doesnt exist" });
+    } else if (electionexist.adminid !== req.user.id) {
+      return res
+        .status(403)
+        .send({ message: "You are only permitted to view your resource" });
+    } else {
+      await Voter.update(
+        { status: false },
+        {
+          where: { electionid, codesent: 0 },
+        }
+      );
+      const totalvoters = await Voter.count({
+        where: { electionid, adminid: req.user.id, status: 1 },
+      });
+      return res.status(200).send({ totalvoters });
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+export const deleteVoter = async (req, res, next) => {
+  let { voterid, electionid } = req.params;
+  let voter = await Voter.findOne({ where: { id: voterid } });
+
+  try {
+    if (!voter) {
+      return res.status(404).send({ message: "voter doesnt exist" });
+    } else if (voter.adminid !== req.user.id) {
+      return res
+        .status(403)
+        .send({ message: "You are only permitted to delete your resource" });
+    } else {
+      await Voter.update(
+        { status: false },
+        {
+          where: { id: voterid, codesent: false },
+        }
+      );
+      const totalvoters = await Voter.count({
+        where: { electionid, adminid: req.user.id, status: 1 },
+      });
+
+      return res.status(200).send({ totalvoters });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const editVoter = async (req, res, next) => {
+  let { voterid } = req.params;
+  let { idnumber, email, phonenumber, profile, fullname } = req.body;
+  let voter = await Voter.findOne({
+    where: {
+      id: voterid,
+    },
+  });
+
+  try {
+    if (!voter) {
+      return res.status(404).send({ message: "voter doesnt exist" });
+    } else {
+      if (req.user.id !== voter.adminid) {
+        return res
+          .status(404)
+          .send({ message: "Cant update voter outside your organization" });
+      }
+      await Voter.update(
+        { idnumber, email, phonenumber, profile, fullname },
+        {
+          where: {
+            id: voterid,
+          },
+        }
+      );
+      return res.status(200).send("success");
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addVoters = async (req, res, next) => {
+  let { voters } = req.body;
+  let { electionid } = req.params;
+  console.log(voters);
+  let electionss = await election.findOne({ where: { electionid } });
+
+  const voterDataArray = voters.map((data) => ({
+    idnumber: data.idnumber,
+    email: data.email,
+    phonenumber: data.phonenumber,
+    profile: data.profile,
+    fullname: data.fullname,
+    electionid,
+    electioncode: generate8DigitCode(),
+  }));
+  try {
+    if (electionss.adminid !== req.user.id) {
+      return res.status(403).send("forbidden to edit other resource");
+    } else {
+      if (electionid) {
+        await Voter.bulkCreate(voterDataArray);
+        return res.status(200).send("voters added successfully");
+      } else {
+        return res.status(404).send({ message: "unable to post " });
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getVoterStat = async (req, res, next) => {
+  let { electionid } = req.params;
+  let elect = await election.findOne({
+    where: {
+      electionid,
+    },
+  });
+
+  try {
+    if (!elect) {
+      return res.status(404).send({ message: "Election doesnt exist" });
+    } else {
+      if (req.user.id !== elect.adminid) {
+        return res
+          .status(404)
+          .send({ message: "Cant view stat outside your organization" });
+      }
+      const totalvoters = await Voter.count({
+        where: { electionid, adminid: req.user.id, status: 1 },
+      });
+      const totalcodesent = await Voter.count({
+        where: { electionid, adminid: req.user.id, codesent: true },
+      });
+      return res.status(200).send({ totalvoters, totalcodesent });
     }
   } catch (error) {
     next(error);

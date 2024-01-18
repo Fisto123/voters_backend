@@ -27,6 +27,11 @@ export const userModel = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: false,
     },
+    deletestatus: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     dateactivated: { type: DataTypes.DATE, allowNull: true },
     datedeactivated: { type: DataTypes.DATE, allowNull: true },
   });

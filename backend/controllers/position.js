@@ -94,7 +94,9 @@ export const AdminPositions2 = async (req, res, next) => {
 export const getPosition = async (req, res, next) => {
   let { electionid, positionid } = req.params;
   try {
-    let positiondetails = await Position.findOne({ where: { id: positionid } });
+    let positiondetails = await Position.findOne({
+      where: { id: positionid, electionid },
+    });
     if (!positiondetails) {
       return res.status(404).send({ message: "position doesnt exist" });
     } else {

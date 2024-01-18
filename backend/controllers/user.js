@@ -63,17 +63,23 @@ export const deleteposition = async (req, res, next) => {
 };
 
 export const deleteCandidate = async (req, res, next) => {
-  let { candidateid, electionid } = req.params;
-  if (electionid) {
-    await Candidate.update(
-      {
-        status: false,
-      },
-      { where: { id: candidateid, electionid } }
-    );
-    return res.status(200).send({ message: "Candidate deleted successfully" });
-  }
+  let { candidateid } = req.params;
+  let cand = await Candidate.findOne({ candidateid });
+
   try {
+    if (cand?.adminid !== req.user.id) {
+      return res.status(403).send({ message: "Can only delete your resource" });
+    } else {
+      if (candidateid) {
+        await Candidate.update(
+          {
+            status: false,
+          },
+          { where: { id: candidateid } }
+        );
+        return res.status(200).send("Candidate deleted successfully");
+      }
+    }
   } catch (error) {
     next(error);
   }
@@ -113,47 +119,17 @@ export const ElectionData = async (req, res, next) => {
   }
 };
 
-//  [
-//    {
-//      positionid: 1,
-//      positionname: "President",
-//      candidates: [
-//        {
-//          candidateid: 34,
-//          fullname: "Babajide",
-//          profilepicture:
-//            "https://staff.yabatech.edu.ng/staffimgg/Passport_redBG.jpg",
-//        },
-//        {
-//          candidateid: 48,
-//          fullname: "Chuckwu",
-//          profilepicture:
-//            "https://staff.yabatech.edu.ng/staffimgg/1582018875mypass.jpg",
-//        },
-//      ],
-//    },
-//    {
-//      positionid: 2,
-//      positionname: "Vice President",
-//      candidates: [
-//        {
-//          candidateid: 12,
-//          fullname: "Simisolu",
-//          profilepicture:
-//            "https://staff.yabatech.edu.ng/staffimgg/1582018875mypass.jpg",
-//        },
-//        {
-//          candidateid: 120,
-//          fullname: "Dejo Tufulu",
-//          profilepicture:
-//            "https://staff.yabatech.edu.ng/staffimgg/Passport_redBG.jpg",
-//        },
-//        {
-//          candidateid: 99,
-//          fullname: "Fisto Law",
-//          profilepicture:
-//            "https://staff.yabatech.edu.ng/staffimgg/1582018875mypass.jpg",
-//        },
-//      ],
-//    },
-//  ];
+export const getElectionVoter = async (req, res, next) => {
+  let { electionid } = req.params;
+  try {
+    let election = await Election.findOne({ where: { electionid } });
+    if (!election) {
+      return res.status(404).send({ message: "election doesnt exist" });
+    } else {
+      let results = await Election.findAll({ where: { electionid } });
+      return res.status(200).send(results);
+    }
+  } catch (error) {
+    next(error);
+  }
+};

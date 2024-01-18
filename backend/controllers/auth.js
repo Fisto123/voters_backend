@@ -173,6 +173,10 @@ export const adminLogin = async (req, res, next) => {
       return res.status(409).json({
         message: "Email does not exist",
       });
+    } else if (user.deletestatus === true) {
+      return res.status(404).json({
+        message: "Account deactivated. Please contact Admin",
+      });
     } else if (user.status === false) {
       return res.status(409).json({
         message: "Please activate your account to login",

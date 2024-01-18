@@ -13,11 +13,7 @@ const routes = express.Router({
 routes.delete("/deletevoter/:userid", auth, deleteVoter);
 routes.delete("/deleteelection/:electionid", auth, deleteElection);
 routes.delete("/deleteposition/:positionid", auth, deleteposition);
-routes.delete(
-  "/deleteCandidate/:candidateid/:electionid",
-  auth,
-  deleteCandidate
-);
+routes.delete("/deletecandidate/:candidateid", auth, deleteCandidate);
 
 //voters routes
 export default routes;

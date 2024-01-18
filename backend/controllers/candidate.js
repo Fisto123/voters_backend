@@ -67,15 +67,52 @@ export const updateCandidatePicture = async (req, res, next) => {
 
 export const getCandidates = async (req, res, next) => {
   let { positionid } = req.params;
-  let singleposition = await Position.findOne({ where: { id: positionid } });
+  let singleposition = await Position.findOne({
+    where: { id: positionid },
+  });
   try {
     if (!singleposition) {
       return res.status(404).send({ message: "invalid position" });
     } else {
       let position = await Candidate.findAll({
-        where: { positionid, adminid: req.user.id },
+        where: { positionid, adminid: req.user.id, status: true },
       });
       return res.status(200).send(position);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const editCandidate = async (req, res, next) => {
+  let { candidateid, positionid } = req.params;
+  let { fullname, profile } = req.body;
+  let candidate = await Candidate.findOne({
+    where: {
+      id: candidateid,
+      positionid,
+    },
+  });
+
+  try {
+    if (!candidate) {
+      return res.status(404).send({ message: "Candidate doesnt exist" });
+    } else {
+      if (req.user.id !== candidate.adminid) {
+        return res
+          .status(404)
+          .send({ message: "Cant update candidate outside your organization" });
+      }
+      await Candidate.update(
+        { fullname, profile },
+        {
+          where: {
+            id: candidateid,
+            positionid,
+          },
+        }
+      );
+      return res.status(200).send("success");
     }
   } catch (error) {
     next(error);

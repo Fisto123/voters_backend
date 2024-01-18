@@ -8,6 +8,7 @@ export const EvoterModel = (sequelize, DataTypes) => {
     },
     electionid: { type: DataTypes.UUID, allowNull: true },
     idnumber: { type: DataTypes.STRING, allowNull: true },
+    adminid: { type: DataTypes.STRING, allowNull: true },
     email: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -17,15 +18,19 @@ export const EvoterModel = (sequelize, DataTypes) => {
         },
       },
     },
-    firstname: { type: DataTypes.STRING, allowNull: false },
-    lastname: { type: DataTypes.STRING, allowNull: false },
-    profile: { type: DataTypes.STRING, allowNull: false },
-    phonenumber: { type: DataTypes.STRING, allowNull: false },
+    fullname: { type: DataTypes.STRING, allowNull: true },
+    profile: { type: DataTypes.STRING, allowNull: true },
+    phonenumber: { type: DataTypes.STRING, allowNull: true },
     profilepicture: { type: DataTypes.STRING, allowNull: true },
     codesent: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
-    electioncode: { type: DataTypes.STRING, allowNull: false, unique: true },
+    electioncode: { type: DataTypes.STRING, allowNull: false },
     datecreated: { type: DataTypes.DATE, allowNull: true },
     status: { type: DataTypes.BOOLEAN, defaultValue: true },
+    deletestatus: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
   });
 
   return Evoter;
