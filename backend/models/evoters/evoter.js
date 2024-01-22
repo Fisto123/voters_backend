@@ -31,6 +31,11 @@ export const EvoterModel = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: false,
     },
+    voted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
   });
 
   return Evoter;

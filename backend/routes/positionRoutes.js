@@ -15,4 +15,7 @@ routes.patch("/editposition/:positionid", auth, EditPosition);
 routes.get("/positions/:electionid", auth, AdminPositions);
 routes.get("/positiondetails/:positionid/:electionid", auth, getPosition);
 
+//voters
+routes.get("/positions/:electionid", AdminPositions);
+
 export default routes;

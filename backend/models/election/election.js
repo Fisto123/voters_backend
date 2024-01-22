@@ -18,6 +18,15 @@ export const ElectionModel = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    datepublished: { type: DataTypes.DATE, allowNull: true },
+    votersresultlink: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    skipvotes: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     status: { type: DataTypes.BOOLEAN, defaultValue: true },
   });
 

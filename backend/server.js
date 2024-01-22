@@ -14,12 +14,17 @@ import userRoutes from "./routes/userRoutes.js";
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:5173",
+      "http://192.168.0.175:3000",
+    ],
     credentials: true,
   })
 );
 
-app.use(bodyParser.json());
+http: app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

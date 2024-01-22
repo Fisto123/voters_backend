@@ -84,51 +84,82 @@ export const deleteCandidate = async (req, res, next) => {
     next(error);
   }
 };
+// export const ElectionData = async (req, res, next) => {
+//   let { electionid } = req.params;
+//   try {
+//     let candidates = await Candidate.findAll({
+//       where: { electionid },
+//       attributes: ["positionid", "fullname"],
+//     });
+
+//     // Use Promise.all to wait for all the promises to resolve
+//     let results = await Promise.all(
+//       candidates.map(async (candidate) => {
+//         const positionDetails = await Position.findAll({
+//           where: { id: candidate.positionid },
+//           attributes: ["positionname"],
+//         });
+//         console.log(positionDetails);
+
+//         // Extract the positionname from the first item in the array
+//         const positionName =
+//           positionDetails.length > 0 ? positionDetails[0].positionname : null;
+
+//         return {
+//           fullname: candidate.fullname,
+//           positionname: positionName,
+//         };
+//       })
+//     );
+
+//     return res.status(200).send(results);
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 export const ElectionData = async (req, res, next) => {
   let { electionid } = req.params;
+
   try {
+    // Retrieve all candidates with their positions
     let candidates = await Candidate.findAll({
-      where: { electionid },
-      attributes: ["positionid", "firstname", "lastname"],
+      where: { electionid, status: true },
+      attributes: ["positionid", "fullname", "id", "captionimage"],
     });
 
-    // Use Promise.all to wait for all the promises to resolve
-    let results = await Promise.all(
-      candidates.map(async (candidate) => {
-        const positionDetails = await Position.findAll({
-          where: { id: candidate.positionid },
-          attributes: ["positionname"],
-        });
-        console.log(positionDetails);
+    // Retrieve all positions
+    let positions = await Position.findAll({
+      attributes: ["id", "positionname"],
+      where: { electionid, status: true },
+    });
 
-        // Extract the positionname from the first item in the array
-        const positionName =
-          positionDetails.length > 0 ? positionDetails[0].positionname : null;
+    // Create an object to store the results
+    let results = [];
 
-        return {
-          firstname: candidate.firstname,
-          lastname: candidate.lastname,
-          position: positionName,
-        };
-      })
-    );
+    // Iterate through each position
+    for (let position of positions) {
+      // Find candidates for the current position
+      let positionCandidates = candidates.filter(
+        (candidate) => candidate.positionid === position.id
+      );
+
+      // Create an array of candidates for the current position
+      let candidatesArray = positionCandidates.map((candidate) => ({
+        candidateid: candidate.id,
+        fullname: candidate.fullname,
+        profilepicture: candidate.captionimage,
+      }));
+
+      // Add the position details and candidates to the results array
+      results.push({
+        positionid: position.id,
+        positionname: position.positionname,
+        candidates: candidatesArray,
+      });
+    }
 
     return res.status(200).send(results);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getElectionVoter = async (req, res, next) => {
-  let { electionid } = req.params;
-  try {
-    let election = await Election.findOne({ where: { electionid } });
-    if (!election) {
-      return res.status(404).send({ message: "election doesnt exist" });
-    } else {
-      let results = await Election.findAll({ where: { electionid } });
-      return res.status(200).send(results);
-    }
   } catch (error) {
     next(error);
   }

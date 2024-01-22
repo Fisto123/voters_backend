@@ -6,6 +6,8 @@ import { generate8DigitCode } from "../utils/randomcode.js";
 import { Op } from "sequelize";
 import { sendActivationEmail2 } from "../utils/email.config.js";
 import { votersloginSchema } from "../validations/auth/login.js";
+import { voterSchema } from "../validations/voters/voter.js";
+import { generateToken, generateTokenVoter } from "../utils/token.js";
 const Voter = db.evoter;
 const election = db.election;
 
@@ -399,22 +401,24 @@ export const sendElectionCode = async (req, res, next) => {
         "email",
         [sequelize.fn("MAX", sequelize.col("electioncode")), "electioncode"],
         [sequelize.fn("MAX", sequelize.col("fullname")), "fullname"],
+        [sequelize.fn("MAX", sequelize.col("id")), "id"],
       ],
       where: { codesent: false, electionid },
       group: ["email"],
     });
 
-    for (const { email, electioncode, fullname } of uniqueEmails) {
+    for (const { email, electioncode, fullname, id } of uniqueEmails) {
+      console.log("em", email, id);
       const emailSentSuccessfully = sendActivationEmail2(
         email,
         fullname,
-        "send",
-        electioncode
+        electioncode,
+        id
       );
       if (emailSentSuccessfully) {
         await Voter.update(
           { codesent: true },
-          { where: { email, electionid } }
+          { where: { email, electionid, status: true } }
         );
         // totalcodesent++; // Increment here if you want to count how many emails were successfully sent
       }
@@ -592,23 +596,32 @@ export const editVoter = async (req, res, next) => {
 export const addVoters = async (req, res, next) => {
   let { voters } = req.body;
   let { electionid } = req.params;
-  console.log(voters);
+
   let electionss = await election.findOne({ where: { electionid } });
 
-  const voterDataArray = voters.map((data) => ({
-    idnumber: data.idnumber,
-    email: data.email,
-    phonenumber: data.phonenumber,
-    profile: data.profile,
-    fullname: data.fullname,
-    electionid,
-    electioncode: generate8DigitCode(),
-  }));
   try {
-    if (electionss.adminid !== req.user.id) {
+    if (!electionid) {
+      return res.status(403).send("election doesnt exist");
+    } else if (electionss.adminid !== req.user.id) {
       return res.status(403).send("forbidden to edit other resource");
     } else {
       if (electionid) {
+        await Promise.all(
+          voters.map(async (data, index) => {
+            await voterSchema.validate(data, { abortEarly: false });
+          })
+        );
+
+        const voterDataArray = voters.map((data) => ({
+          idnumber: data.idnumber,
+          email: data.email,
+          phonenumber: data.phonenumber,
+          profile: data.profile,
+          fullname: data.fullname,
+          adminid: req.user.id,
+          electionid,
+          electioncode: generate8DigitCode(),
+        }));
         await Voter.bulkCreate(voterDataArray);
         return res.status(200).send("voters added successfully");
       } else {
@@ -644,6 +657,41 @@ export const getVoterStat = async (req, res, next) => {
         where: { electionid, adminid: req.user.id, codesent: true },
       });
       return res.status(200).send({ totalvoters, totalcodesent });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+export const VotersLoginn = async (req, res, next) => {
+  let { email, votingcode } = req.body;
+
+  try {
+    const user = await Voter.findOne({
+      where: {
+        email,
+        electioncode: votingcode,
+      },
+    });
+    if (!user) {
+      return res.status(409).json({
+        message: "Invalid Login details",
+      });
+    } else if (user.deletestatus === true) {
+      return res.status(404).json({
+        message: "Account deactivated. Please contact Admin",
+      });
+    } else {
+      if (votingcode) {
+        if (votingcode !== user?.electioncode) {
+          return res.status(404).json({
+            message: "Inorrect password",
+          });
+        } else {
+          const token = generateTokenVoter(user);
+          res.setHeader("Authorization", `Bearer ${token}`);
+          return res.status(200).send({ token });
+        }
+      }
     }
   } catch (error) {
     next(error);

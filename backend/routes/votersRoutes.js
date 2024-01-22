@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  VotersLoginn,
   addVoters,
   deleteElectionVoters,
   deleteVoter,
@@ -11,6 +12,7 @@ import {
 } from "../controllers/voters.js";
 import { auth } from "../middleware/verify.js";
 import multer from "multer";
+import { getElectionVoterz, getVoteStatus } from "../controllers/election.js";
 
 const routes = express.Router({
   mergeParams: true,
@@ -31,5 +33,12 @@ routes.delete("/deleteelectionvoters/:electionid", auth, deleteElectionVoters);
 routes.delete("/deletevoter/:voterid/:electionid", auth, deleteVoter);
 routes.patch("/editvoter/:voterid", auth, editVoter);
 routes.post("/addvoters/:electionid", auth, addVoters);
+
+//voters route
+routes.post("/voterslogin", VotersLoginn);
+routes.get("/electionvoterdetails/:electionid", auth, getElectionVoterz);
+routes.get("/votingstatus/:electionid", auth, getVoteStatus);
+
+//voters route
 
 export default routes;
