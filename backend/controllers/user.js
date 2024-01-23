@@ -133,7 +133,25 @@ export const ElectionData = async (req, res, next) => {
       attributes: ["id", "positionname"],
       where: { electionid, status: true },
     });
+    const election = await Election.findOne({
+      where: { electionid },
+      attributes: ["startdate", "enddate"],
+    });
+    const currentDate = new Date();
+    const electionStartDate = new Date(election.startdate);
+    const electionEndDate = new Date(election.enddate);
 
+    if (!req.user.id) {
+      return res.status(404).send({ message: "not permitted" });
+    } else if (currentDate < electionStartDate) {
+      return res
+        .status(403)
+        .send({ message: "The election has not started yet." });
+    } else if (currentDate > electionEndDate) {
+      return res
+        .status(403)
+        .send({ message: "Sorry, the election has ended." });
+    }
     // Create an object to store the results
     let results = [];
 

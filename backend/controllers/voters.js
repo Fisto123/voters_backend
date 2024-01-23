@@ -8,6 +8,7 @@ import { sendActivationEmail2 } from "../utils/email.config.js";
 import { votersloginSchema } from "../validations/auth/login.js";
 import { voterSchema } from "../validations/voters/voter.js";
 import { generateToken, generateTokenVoter } from "../utils/token.js";
+import axios from "axios";
 const Voter = db.evoter;
 const election = db.election;
 
@@ -328,73 +329,13 @@ export const uploadVoters = async (req, res, next) => {
   }
 };
 
-// export const getSingleVoter = async (req, res) => {
-//   try {
-//     const uniqueEmails = await Voter.findAll({
-//       attributes: [
-//         [sequelize.fn("DISTINCT", sequelize.col("email")), "email"],
-//         "electioncode",
-//         "firstname",
-//         "lastname",
-//       ],
-//     });
-
-//     for (const { email, electioncode, firstname, lastname } of uniqueEmails) {
-//       console.log(email);
-//       // sendActivationEmail2(email, firstname, lastname, "send", electioncode);
-//     }
-
-//     res.status(200).send("Activation emails sent successfully");
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
-
-// Example function to generate activation codes (replace with your actual implementation)
-
-// export const sendElectionCode = async (req, res, next) => {
-//   let { electionid } = req.params;
-//   try {
-//     const uniqueEmails = await Voter.findAll({
-//       attributes: [
-//         "email",
-//         [sequelize.fn("MAX", sequelize.col("electioncode")), "electioncode"],
-//         [sequelize.fn("MAX", sequelize.col("fullname")), "fullname"],
-//       ],
-//       where: { codesent: false, electionid },
-//       group: ["email"],
-//     });
-
-//     for (const { email, electioncode, fullname } of uniqueEmails) {
-//       const emailSentSuccessfully = sendActivationEmail2(
-//         email,
-//         fullname,
-//         "send",
-//         electioncode
-//       );
-//       if (emailSentSuccessfully) {
-//         const totalcodesent = await Voter.count({
-//           where: { electionid, adminid: req.user.id, codesent: true },
-//         });
-//         const totalvoters = await Voter.count({
-//           where: { electionid, adminid: req.user.id, status: 1 },
-//         });
-//         await Voter.update(
-//           { codesent: true },
-//           { where: { email, electionid } }
-//         );
-//         res.status(200).send({ totalcodesent, totalvoters });
-//       }
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
-
-export const sendElectionCode = async (req, res, next) => {
+export const sendElectionCode2 = async (req, res, next) => {
   let { electionid } = req.params;
+  let elect = await election.findOne({
+    where: { electionid },
+    attributes: ["electionname"],
+  });
+
   try {
     const uniqueEmails = await Voter.findAll({
       attributes: [
@@ -408,32 +349,110 @@ export const sendElectionCode = async (req, res, next) => {
     });
 
     for (const { email, electioncode, fullname, id } of uniqueEmails) {
-      console.log("em", email, id);
       const emailSentSuccessfully = sendActivationEmail2(
         email,
         fullname,
         electioncode,
-        id
+        id,
+        elect?.electionname
       );
+
       if (emailSentSuccessfully) {
         await Voter.update(
           { codesent: true },
           { where: { email, electionid, status: true } }
         );
-        // totalcodesent++; // Increment here if you want to count how many emails were successfully sent
+      } else {
+        console.error(`Failed to send email to ${email}`);
       }
     }
 
     const totalvoters = await Voter.count({
       where: { electionid, adminid: req.user.id, status: 1 },
     });
+
     const totalcodesent = await Voter.count({
       where: { electionid, adminid: req.user.id, codesent: true },
     });
 
     res.status(200).send({ totalcodesent, totalvoters });
   } catch (error) {
-    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const sendElectionCode = async (req, res, next) => {
+  let { electionid } = req.params;
+  let elect = await election.findOne({
+    where: { electionid },
+    attributes: ["electionname"],
+  });
+
+  try {
+    const uniqueEmails = await Voter.findAll({
+      attributes: [
+        "email",
+        [sequelize.fn("MAX", sequelize.col("electioncode")), "electioncode"],
+        [sequelize.fn("MAX", sequelize.col("fullname")), "fullname"],
+        [sequelize.fn("MAX", sequelize.col("id")), "id"],
+      ],
+      where: { codesent: false, electionid },
+      group: ["email"],
+    });
+
+    const emailDataArray = uniqueEmails.map(
+      ({ email, electioncode, fullname, id }) => {
+        return {
+          email,
+          electioncode,
+          fullname,
+          id,
+        };
+      }
+    );
+
+    const apiBaseUrl = "https://api.elasticemail.com/v2/email/send";
+
+    const emailPromises = emailDataArray.map(
+      async ({ email, electioncode, fullname, id }) => {
+        const emailData = {
+          apiKey:
+            "93FE66982FEBDC11AC0A3E3AC38CDB930CCFF4166F02773BBC86A8D6DD96A489123155641E1C7B3AFC8BEC72C6C7190",
+          to: email,
+          subject: "Your Subject",
+          from: "info@michofat.com",
+          bodyHtml: `<p>Hello ${fullname}, your election code is: ${electioncode}</p>`,
+        };
+
+        try {
+          const response = await axios.post(apiBaseUrl, emailData);
+          console.log(`Email sent successfully to ${email}:`, response.data);
+          await Voter.update(
+            { codesent: true },
+            { where: { email, electionid, status: true } }
+          );
+          return { success: true, email };
+        } catch (error) {
+          console.error(
+            `Failed to send email to ${email}:`,
+            error.response.data
+          );
+          return { success: false, email };
+        }
+      }
+    );
+
+    const results = await Promise.all(emailPromises);
+
+    const totalvoters = await Voter.count({
+      where: { electionid, adminid: req.user.id, status: 1 },
+    });
+
+    const totalcodesent = results.filter((result) => result.success).length;
+
+    res.status(200).send({ totalcodesent, totalvoters });
+  } catch (error) {
+    console.error("Error in sendElectionCode:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -526,7 +545,6 @@ export const deleteElectionVoters = async (req, res, next) => {
       return res.status(200).send({ totalvoters });
     }
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
@@ -663,13 +681,13 @@ export const getVoterStat = async (req, res, next) => {
   }
 };
 export const VotersLoginn = async (req, res, next) => {
-  let { email, votingcode } = req.body;
+  let { voterId, codeVote } = req.body;
 
   try {
     const user = await Voter.findOne({
       where: {
-        email,
-        electioncode: votingcode,
+        id: voterId,
+        electioncode: codeVote,
       },
     });
     if (!user) {
@@ -681,15 +699,15 @@ export const VotersLoginn = async (req, res, next) => {
         message: "Account deactivated. Please contact Admin",
       });
     } else {
-      if (votingcode) {
-        if (votingcode !== user?.electioncode) {
+      if (codeVote && voterId) {
+        if (codeVote !== user?.electioncode) {
           return res.status(404).json({
-            message: "Inorrect password",
+            message: "Error",
           });
         } else {
           const token = generateTokenVoter(user);
           res.setHeader("Authorization", `Bearer ${token}`);
-          return res.status(200).send({ token });
+          return res.status(200).send({ token, electionid: user?.electionid });
         }
       }
     }

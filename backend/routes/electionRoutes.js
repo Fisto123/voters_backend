@@ -7,6 +7,7 @@ import {
   electionReport,
   getAdminElection,
   getElection,
+  getResultStatus,
   publishElection,
 } from "../controllers/election.js";
 import { ElectionData } from "../controllers/user.js";
@@ -19,8 +20,9 @@ routes.patch("/editelection/:electionid", auth, editElection);
 routes.get("/myelections", auth, getAdminElection);
 routes.get("/electiondetails/:electionid", auth, getElection);
 routes.patch("/publishelection/:electionid", auth, publishElection);
-routes.get("/electiondata/:electionid", ElectionData);
+routes.get("/electiondata/:electionid", auth, ElectionData);
 routes.patch("/editelectiondate/:electionid", auth, editElectionDate);
 routes.get("/electionreport/:electionid", auth, electionReport);
+routes.get("/resultviewstatus/:electionid", auth, getResultStatus);
 
 export default routes;

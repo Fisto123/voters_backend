@@ -145,7 +145,7 @@ export const votelog = async (req, res, next) => {
                 id: voter.id,
                 fullname: voter.fullname,
                 profile: voter.profile,
-                votedAt: ballot.createdAt, // Include the vote date
+                votedAt: ballot.createdAt,
               };
             })
           );
@@ -154,7 +154,7 @@ export const votelog = async (req, res, next) => {
           resultArray.push({
             positionid: position.id,
             positionname: position.positionname,
-            voterCount: voterDetails.length, // Add the count of voters
+            voterCount: voterDetails.length,
             voters: voterDetails,
           });
         })
@@ -163,7 +163,6 @@ export const votelog = async (req, res, next) => {
       return res.status(200).send(resultArray);
     }
   } catch (error) {
-    console.error("Error in votelog:", error);
     next(error);
   }
 };
@@ -172,10 +171,18 @@ export const VoterResultView = async (req, res, next) => {
   let { electionid } = req.params;
 
   try {
-    // Check if the election exists
     let user = await Voter.findOne({ where: { electionid, id: req.user.id } });
+    let elect = await Election.findOne({
+      where: { electionid },
+    });
+
     if (!user) {
       return res.status(404).send({ message: "you are not permitted to view" });
+    }
+    if (elect?.votersresultlink === false) {
+      return res
+        .status(403)
+        .send({ message: "you are not permitted to view result" });
     }
 
     let positions = await Position.findAll({

@@ -8,7 +8,7 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-const URL = "http://localhost:5173/vt/";
+const URL = "http://localhost:5173/vt";
 export const sendActivationEmail = (
   email,
   activationCode,
@@ -63,10 +63,10 @@ const sendMail = (email, activationCode, firstname, lastname, message) => {
   return mailOptions;
 };
 
-export const sendActivationEmail2 = (email, fullname, codesent, id) => {
+export const sendActivationEmail2 = (email, fullname, codesent, id, name) => {
   return new Promise((resolve, reject) => {
     transporter.sendMail(
-      sendMail2(email, fullname, codesent, id),
+      sendMail2(email, fullname, codesent, id, name),
       (error, info) => {
         if (error) {
           reject(error);
@@ -78,7 +78,7 @@ export const sendActivationEmail2 = (email, fullname, codesent, id) => {
   });
 };
 
-const sendMail2 = (email, fullname, codesent, id) => {
+const sendMail2 = (email, fullname, codesent, id, name) => {
   let firstlink = codesent + id;
   const hash = crypto.createHash("md5");
   hash.update(codesent);
@@ -89,10 +89,10 @@ const sendMail2 = (email, fullname, codesent, id) => {
     subject: `Welcome to the eVoting Platform - ${fullname} `,
     html: `
       <div style="background-color: #f4f4f4; padding: 20px; text-align: center;">
-        <h2 style="color: #4CAF50;">Welcome to the eVoting Platform!</h2>
+        <h2 style="color: #4CAF50;">${name}</h2>
         <p style="font-size: 16px;">Dear ${fullname},</p>
         <p style="font-size: 18px; background-color: #4CAF50; padding: 10px; color: #fff;">
-          <a href=${`${URL}/${firstlink}/${secondlink}`} style="color: #fff; text-decoration: none;">Visit link to vote</a>
+          <a href=${`${URL}/${firstlink}/${secondlink}`} style="color: #fff; text-decoration: none; cursor:'pointer">Click here to vote</a>
         </p>
         <p style="font-size: 16px;">If you have any questions or need assistance, feel free to contact us.</p>
         <p style="font-size: 16px;">Best regards,</p>

@@ -21,7 +21,7 @@ export const userModel = (sequelize, DataTypes) => {
     hashpassword: { type: DataTypes.STRING, allowNull: false },
     activationcode: { type: DataTypes.INTEGER, allowNull: true },
     forgotcode: { type: DataTypes.INTEGER, allowNull: true },
-    phonenumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+    phonenumber: { type: DataTypes.STRING, allowNull: false },
     status: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

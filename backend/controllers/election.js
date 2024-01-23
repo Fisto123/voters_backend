@@ -428,3 +428,21 @@ export const electionReport = async (req, res, next) => {
 //     next(error);
 //   }
 // };
+
+export const getResultStatus = async (req, res, next) => {
+  let { electionid } = req.params;
+  let elect = await Election.findOne({ where: { electionid } });
+  try {
+    if (!elect) {
+      return res.status(404).send({ message: "Election doesnt exist " });
+    } else {
+      let viewresult = await Election.findOne({
+        where: { electionid },
+        attributes: ["votersresultlink"],
+      });
+      return res.status(200).send({ viewresult });
+    }
+  } catch (error) {
+    next(error);
+  }
+};

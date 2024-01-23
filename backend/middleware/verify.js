@@ -4,9 +4,15 @@ dotenv.config();
 
 export const auth = (req, res, next) => {
   const authorizationHeader = req.headers["authorization"];
-  console.log(authorizationHeader);
+
+  if (!authorizationHeader || typeof authorizationHeader !== "string") {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+
   const token = authorizationHeader.split(" ")[1];
-  console.log(token);
+
   if (token) {
     jwt.verify(token, process.env.secretkey, (err, user) => {
       if (err) return res.status(403).json("Token is not valid!");
@@ -14,6 +20,6 @@ export const auth = (req, res, next) => {
       next();
     });
   } else {
-    return res.status(401).json("You are not authentitcated!");
+    return res.status(401).json("You are not authenticated!");
   }
 };
