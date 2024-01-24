@@ -4,203 +4,24 @@ import csv from "csv-parser";
 import db, { sequelize } from "../models/index.js";
 import { generate8DigitCode } from "../utils/randomcode.js";
 import { Op } from "sequelize";
-import { sendActivationEmail2 } from "../utils/email.config.js";
 import { votersloginSchema } from "../validations/auth/login.js";
 import { voterSchema } from "../validations/voters/voter.js";
 import { generateToken, generateTokenVoter } from "../utils/token.js";
 import axios from "axios";
 const Voter = db.evoter;
 const election = db.election;
+import ElasticEmail from "@elasticemail/elasticemail-client-ts-axios";
+import crypto from "crypto";
 
-// const processCSV = async (filePath, electionid, adminid) => {
-//   return new Promise((resolve, reject) => {
-//     const results = [];
+const { Configuration, EmailsApi } = ElasticEmail;
+const URL = "http://localhost:5173/vt";
 
-//     const stream = fs
-//       .createReadStream(filePath)
-//       .pipe(csv())
-//       .on("data", (data) => {
-//         const { firstname, lastname, email, profile, phonenumber } = data;
+const config = new Configuration({
+  apiKey:
+    "62A28FFDFA4CF35A3E93FAEA101ED265A1E3381E1CAE6286DD18B6D882DA579F62641017BF792DA51ABF270A70A20AC1",
+});
 
-//         results.push({
-//           electionid,
-//           firstname,
-//           lastname,
-//           email,
-//           profile,
-//           phonenumber,
-//           electioncode: generate8DigitCode(),
-//           adminid,
-//         });
-//       })
-//       .on("end", async () => {
-//         try {
-//           // Save the data to the database
-//           await Voter.bulkCreate(results);
-
-//           // Resolve the promise when done
-//           resolve();
-//         } catch (error) {
-//           // Reject the promise if there's an error
-//           reject(error);
-//         } finally {
-//           // Remove the temporary file after processing
-//           fs.unlinkSync(filePath);
-//         }
-//       });
-
-//     // Handle stream errors
-//     stream.on("error", (error) => {
-//       reject(error);
-//     });
-//   });
-// };
-
-// const processCSV = async (filePath, electionid, adminid, batchSize = 100) => {
-//   return new Promise((resolve, reject) => {
-//     const results = [];
-//     let currentBatch = [];
-
-//     const processBatch = async (batch) => {
-//       try {
-//         // Save the data to the database
-//         await Voter.bulkCreate(batch);
-//       } catch (error) {
-//         // Reject the promise if there's an error
-//         reject(error);
-//       }
-//     };
-
-//     const stream = fs
-//       .createReadStream(filePath)
-//       .pipe(csv())
-//       .on("data", async (data) => {
-//         const { firstname, lastname, email, profile, phonenumber } = data;
-
-//         currentBatch.push({
-//           electionid,
-//           firstname,
-//           lastname,
-//           email,
-//           profile,
-//           phonenumber,
-//           electioncode: generate8DigitCode(),
-//           adminid,
-//         });
-
-//         if (currentBatch.length === batchSize) {
-//           // Process the current batch asynchronously and reset it
-//           results.push(processBatch([...currentBatch]));
-//           currentBatch = [];
-
-//           // Wait for the previous batch to complete before processing the next one
-//           await Promise.all(results);
-//         }
-//       })
-//       .on("end", async () => {
-//         try {
-//           // Process the remaining data in the last batch
-//           if (currentBatch.length > 0) {
-//             results.push(processBatch([...currentBatch]));
-//           }
-
-//           // Wait for any remaining batches to complete
-//           await Promise.all(results);
-
-//           // Resolve the promise when done
-//           resolve();
-//         } catch (error) {
-//           // Reject the promise if there's an error
-//           reject(error);
-//         } finally {
-//           // Remove the temporary file after processing
-//           fs.unlinkSync(filePath);
-//         }
-//       });
-
-//     // Handle stream errors
-//     stream.on("error", (error) => {
-//       reject(error);
-//     });
-//   });
-// };
-// const processCSV = async (filePath, electionid, adminid, batchSize = 200) => {
-//   return new Promise((resolve, reject) => {
-//     let currentMaxId = 0; // Variable to keep track of the current maximum id
-//     const results = [];
-//     let currentBatch = [];
-
-//     const processBatch = async (batch) => {
-//       try {
-//         // Adjust the id field in the batch based on the current maximum id
-//         const adjustedBatch = batch.map((item) => {
-//           item.id = ++currentMaxId;
-//           return item;
-//         });
-
-//         // Save the data to the database
-//         await Voter.bulkCreate(adjustedBatch);
-//       } catch (error) {
-//         // Reject the promise if there's an error
-//         reject(error);
-//       }
-//     };
-
-//     const stream = fs
-//       .createReadStream(filePath)
-//       .pipe(csv())
-//       .on("data", async (data) => {
-//         const { fullname, email,idnumber, profile, phonenumber } = data;
-
-//         currentBatch.push({
-//           id: null,
-//           electionid,
-//           fullname,
-//           email,
-//           profile,
-//           idnumber,
-//           phonenumber,
-//           electioncode: generate8DigitCode(),
-//           adminid,
-//         });
-
-//         if (currentBatch.length === batchSize) {
-//           // Process the current batch asynchronously and reset it
-//           results.push(processBatch([...currentBatch]));
-//           currentBatch = [];
-
-//           // Wait for the previous batch to complete before processing the next one
-//           await Promise.all(results);
-//         }
-//       })
-//       .on("end", async () => {
-//         try {
-//           // Process the remaining data in the last batch
-//           if (currentBatch.length > 0) {
-//             results.push(processBatch([...currentBatch]));
-//           }
-
-//           // Wait for any remaining batches to complete
-//           await Promise.all(results);
-
-//           // Resolve the promise when done
-//           resolve();
-//         } catch (error) {
-//           // Reject the promise if there's an error
-//           reject(error);
-//         } finally {
-//           // Remove the temporary file after processing
-//           fs.unlinkSync(filePath);
-//         }
-//       });
-
-//     // Handle stream errors
-//     stream.on("error", (error) => {
-//       reject(error);
-//     });
-//   });
-// };
-
+const emailsApi = new EmailsApi(config);
 const processCSV = async (filePath, electionid, adminid, batchSize = 200) => {
   return new Promise((resolve, reject) => {
     let currentMaxId = 0; // Variable to keep track of the current maximum id
@@ -290,17 +111,6 @@ const processCSV = async (filePath, electionid, adminid, batchSize = 200) => {
   });
 };
 
-const isCodeDuplicate = async (code, currentRecordId) => {
-  // Check if the code already exists in the database, excluding the current record
-  const existingRecord = await Voter.findOne({
-    where: {
-      electioncode: code,
-      id: { [Op.not]: currentRecordId }, // Exclude the current record
-    },
-  });
-
-  return !!existingRecord;
-};
 export const uploadVoters = async (req, res, next) => {
   try {
     const { electionid } = req.params;
@@ -381,14 +191,14 @@ export const sendElectionCode2 = async (req, res, next) => {
   }
 };
 
-export const sendElectionCode = async (req, res, next) => {
-  let { electionid } = req.params;
-  let elect = await election.findOne({
-    where: { electionid },
-    attributes: ["electionname"],
-  });
-
+export const sendElectionCode = async (req, res) => {
   try {
+    const { electionid } = req.params;
+    const elect = await election.findOne({
+      where: { electionid },
+      attributes: ["electionname"],
+    });
+
     const uniqueEmails = await Voter.findAll({
       attributes: [
         "email",
@@ -397,63 +207,110 @@ export const sendElectionCode = async (req, res, next) => {
         [sequelize.fn("MAX", sequelize.col("id")), "id"],
       ],
       where: { codesent: false, electionid },
+      limit: 1000,
       group: ["email"],
     });
 
-    const emailDataArray = uniqueEmails.map(
-      ({ email, electioncode, fullname, id }) => {
-        return {
-          email,
-          electioncode,
-          fullname,
-          id,
-        };
+    for (const { email, electioncode, fullname, id } of uniqueEmails) {
+      console.log(email);
+      const emailSentSuccessfully = sendActivationEmail2(
+        email,
+        fullname,
+        electioncode,
+        id,
+        elect?.electionname
+      );
+      console.log("email", emailSentSuccessfully);
+
+      if (emailSentSuccessfully) {
+        await Voter.update(
+          { codesent: true },
+          { where: { email, electionid, status: true } }
+        );
+      } else {
+        console.error(`Failed to send email to ${email}`);
       }
-    );
-
-    const apiBaseUrl = "https://api.elasticemail.com/v2/email/send";
-
-    const emailPromises = emailDataArray.map(
-      async ({ email, electioncode, fullname, id }) => {
-        const emailData = {
-          apiKey:
-            "93FE66982FEBDC11AC0A3E3AC38CDB930CCFF4166F02773BBC86A8D6DD96A489123155641E1C7B3AFC8BEC72C6C7190",
-          to: email,
-          subject: "Your Subject",
-          from: "info@michofat.com",
-          bodyHtml: `<p>Hello ${fullname}, your election code is: ${electioncode}</p>`,
-        };
-
-        try {
-          const response = await axios.post(apiBaseUrl, emailData);
-          console.log(`Email sent successfully to ${email}:`, response.data);
-          await Voter.update(
-            { codesent: true },
-            { where: { email, electionid, status: true } }
-          );
-          return { success: true, email };
-        } catch (error) {
-          console.error(
-            `Failed to send email to ${email}:`,
-            error.response.data
-          );
-          return { success: false, email };
-        }
-      }
-    );
-
-    const results = await Promise.all(emailPromises);
+    }
 
     const totalvoters = await Voter.count({
       where: { electionid, adminid: req.user.id, status: 1 },
     });
 
-    const totalcodesent = results.filter((result) => result.success).length;
+    const totalcodesent = await Voter.count({
+      where: { electionid, adminid: req.user.id, codesent: true },
+    });
 
     res.status(200).send({ totalcodesent, totalvoters });
   } catch (error) {
-    console.error("Error in sendElectionCode:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Error processing emails." });
+  }
+};
+
+export const sendActivationEmail2 = async (
+  email,
+  fullname,
+  electioncode,
+  id,
+  electionName
+) => {
+  try {
+    let firstlink = electioncode + id;
+    const hash = crypto.createHash("md5");
+    hash.update(electioncode);
+    const secondlink = hash.digest("hex");
+
+    const emailMessageData = {
+      Recipients: [
+        {
+          Email: email,
+          Fields: {
+            name: fullname,
+          },
+        },
+      ],
+      Content: {
+        Body: [
+          {
+            ContentType: "HTML",
+            Charset: "utf-8",
+            Content: `
+              <div style="background-color: #f4f4f4; padding: 20px; text-align: center;">
+              <h2>${electionName} </h2>
+                <h2 style="color: #4CAF50;">Welcome to the eVoting Platform!</h2>
+                <p style="font-size: 16px;">Dear ${fullname},</p>
+               
+                <p style="font-size: 18px; background-color: #4CAF50; padding: 10px; color: #fff;">
+          <a href=${`${URL}/${firstlink}/${secondlink}`} style="color: #fff; text-decoration: none; cursor:'pointer">Click here to vote</a>
+                </p>
+                <p style="font-size: 16px;">If you have any questions or need assistance, feel free to contact us.</p>
+                <p style="font-size: 16px;">Best regards,</p>
+                <p style="font-size: 16px; font-weight: bold; color: #4CAF50;">The eVoting Team</p>
+              </div>
+            `,
+          },
+          {
+            ContentType: "PlainText",
+            Charset: "utf-8",
+            Content: `Hi ${fullname}!`,
+          },
+        ],
+        From: "no-reply@hubtoll.com",
+        Subject: "Your email link",
+      },
+    };
+
+    const response = await emailsApi.emailsPost(emailMessageData);
+
+    console.log("API called successfully.");
+    console.log(response.data);
+
+    return true;
+  } catch (error) {
+    console.error(`Error sending email to ${email}:`, error);
+    return false;
   }
 };
 

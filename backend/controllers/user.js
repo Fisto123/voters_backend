@@ -84,39 +84,6 @@ export const deleteCandidate = async (req, res, next) => {
     next(error);
   }
 };
-// export const ElectionData = async (req, res, next) => {
-//   let { electionid } = req.params;
-//   try {
-//     let candidates = await Candidate.findAll({
-//       where: { electionid },
-//       attributes: ["positionid", "fullname"],
-//     });
-
-//     // Use Promise.all to wait for all the promises to resolve
-//     let results = await Promise.all(
-//       candidates.map(async (candidate) => {
-//         const positionDetails = await Position.findAll({
-//           where: { id: candidate.positionid },
-//           attributes: ["positionname"],
-//         });
-//         console.log(positionDetails);
-
-//         // Extract the positionname from the first item in the array
-//         const positionName =
-//           positionDetails.length > 0 ? positionDetails[0].positionname : null;
-
-//         return {
-//           fullname: candidate.fullname,
-//           positionname: positionName,
-//         };
-//       })
-//     );
-
-//     return res.status(200).send(results);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 
 export const ElectionData = async (req, res, next) => {
   let { electionid } = req.params;

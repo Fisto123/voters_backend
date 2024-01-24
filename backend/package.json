@@ -22,6 +22,8 @@
   },
   "homepage": "https://github.com/Michofat/voterz_backend#readme",
   "dependencies": {
+    "@elasticemail/elasticemail-client": "^4.0.23",
+    "@elasticemail/elasticemail-client-ts-axios": "^4.0.22",
     "axios": "^1.6.5",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",

@@ -137,6 +137,8 @@ export const getPosition = async (req, res, next) => {
 //   }
 // };
 
+////you cant see the overall link when its not yet the time
+
 export const AdminPositions = async (req, res, next) => {
   let { electionid } = req.params;
   try {

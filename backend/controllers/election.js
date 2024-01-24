@@ -170,11 +170,9 @@ export const getElection = async (req, res, next) => {
 export const getElectionVoterz = async (req, res, next) => {
   let { electionid } = req.params;
   let elect = await Election.findOne({ where: { electionid } });
-  console.log(req.user.id, req.user.email);
   let voter = await Voter.findOne({
     where: { email: req.user.email, id: req.user.id },
   });
-  console.log(voter);
 
   try {
     if (!elect) {
@@ -337,97 +335,9 @@ export const electionReport = async (req, res, next) => {
 
     return res.status(200).send(result);
   } catch (error) {
-    console.error("Error in electionReport:", error);
     next(error);
   }
 };
-
-// export const electionReport = async (req, res, next) => {
-//   let { electionid } = req.params;
-
-//   try {
-//     let election = await Election.findOne({
-//       where: { electionid },
-//     });
-
-//     if (!election) {
-//       return res.status(404).send({ message: "Election doesn't exist" });
-//     } else if (req.user.id !== election?.adminid) {
-//       return res.status(403).send({ message: "You don't have permission" });
-//     }
-
-//     let positions = await Position.findAll({
-//       where: { electionid: election.electionid },
-//       attributes: ["id", "positionname"],
-//     });
-
-//     let candidates = await Candidate.findAll({
-//       where: { electionid: election.electionid },
-//       attributes: ["id", "fullname", "positionid"],
-//     });
-
-//     let RegisteredVoters = await Voter.count({
-//       where: { electionid },
-//     });
-
-//     // Organize candidates by position with total votes
-//     const candidatesByPosition = {};
-
-//     // Iterate through candidates and positions
-//     for (const candidate of candidates) {
-//       const positionId = candidate.positionid;
-
-//       // Initialize an empty array for candidates if it doesn't exist
-//       if (!candidatesByPosition[positionId]) {
-//         candidatesByPosition[positionId] = [];
-//       }
-
-//       // Fetch the total votes for the candidate in their position
-//       const totalVotes = await Ballot.count({
-//         where: { candidateid: candidate.id },
-//       });
-
-//       // Push candidate details along with total votes to the array
-//       candidatesByPosition[positionId].push({
-//         id: candidate.id,
-//         fullname: candidate.fullname,
-//         captionimage: candidate.captionimage,
-//         totalVotes: totalVotes,
-//       });
-//     }
-
-//     // Organize positions with associated candidates and total votes
-//     const positionsWithCandidates = positions.map((position) => {
-//       return {
-//         id: position.id,
-//         positionname: position.positionname,
-//         updatedAt: position.updatedAt,
-//         candidates: candidatesByPosition[position.id] || [],
-//       };
-//     });
-
-//     // Format the response
-//     const result = {
-//       election: {
-//         id: election.id,
-//         electionname: election.electionname,
-//         captionimage: election.captionimage,
-//         datepublished: election.datepublished,
-//         votersresultlink: election.votersresultlink,
-//         skipvotes: election.skipvotes,
-//         startdate: election.startdate,
-//         enddate: election.enddate,
-//         totalvoters: RegisteredVoters,
-//       },
-//       positions: positionsWithCandidates,
-//     };
-
-//     return res.status(200).send(result);
-//   } catch (error) {
-//     console.error("Error in electionReport:", error);
-//     next(error);
-//   }
-// };
 
 export const getResultStatus = async (req, res, next) => {
   let { electionid } = req.params;
