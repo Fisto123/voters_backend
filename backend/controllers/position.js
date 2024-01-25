@@ -66,7 +66,11 @@ export const AdminPositions2 = async (req, res, next) => {
         electionid,
       },
     });
-    if (election.adminid !== req.user.id) {
+    if (!election) {
+      return res.status(404).send({
+        message: "Election doesnt exist",
+      });
+    } else if (election.adminid !== req.user.id) {
       return res.status(403).send({
         message: "You can only get your resource",
       });

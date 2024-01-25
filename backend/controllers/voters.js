@@ -6,14 +6,15 @@ import { generate8DigitCode } from "../utils/randomcode.js";
 import { Op } from "sequelize";
 import { votersloginSchema } from "../validations/auth/login.js";
 import { voterSchema } from "../validations/voters/voter.js";
-import { generateTokenVoter } from "../utils/token.js";
+import { generateToken, generateTokenVoter } from "../utils/token.js";
+import axios from "axios";
 const Voter = db.evoter;
 const election = db.election;
 import ElasticEmail from "@elasticemail/elasticemail-client-ts-axios";
 import crypto from "crypto";
 
 const { Configuration, EmailsApi } = ElasticEmail;
-const URL = "https://voterz.michofat.com/vt";
+const URL = "http://localhost:5173/vt";
 
 const config = new Configuration({
   apiKey:
@@ -206,7 +207,7 @@ export const sendElectionCode = async (req, res) => {
         [sequelize.fn("MAX", sequelize.col("id")), "id"],
       ],
       where: { codesent: false, electionid },
-      limit: 5000,
+      limit: 1000,
       group: ["email"],
     });
 
@@ -284,7 +285,6 @@ export const sendActivationEmail2 = async (
                 <p style="font-size: 18px; background-color: #4CAF50; padding: 10px; color: #fff;">
           <a href=${`${URL}/${firstlink}/${secondlink}`} style="color: #fff; text-decoration: none; cursor:'pointer">Click here to vote</a>
                 </p>
-                <p style="font-size: 16px;> Or copy the link here ${`${URL}/${firstlink}/${secondlink}`} </p>
                 <p style="font-size: 16px;">If you have any questions or need assistance, feel free to contact us.</p>
                 <p style="font-size: 16px;">Best regards,</p>
                 <p style="font-size: 16px; font-weight: bold; color: #4CAF50;">The eVoting Team</p>
@@ -365,16 +365,16 @@ export const getElectionVoter = async (req, res, next) => {
       const totalPages = Math.ceil(totalvoters / Number(pageSize));
       let voters = await Voter.findAll({
         where: { electionid, adminid: req.user.id, status: 1 },
+        offset,
+        limit: pageSize,
         attributes: [
           "id",
+          "codesent",
           "fullname",
           "email",
           "idnumber",
-          "codesent",
           "profile",
         ],
-        offset,
-        limit: pageSize,
       });
 
       return res
@@ -382,7 +382,6 @@ export const getElectionVoter = async (req, res, next) => {
         .send({ voters, totalvoters, totalcodesent, totalPages });
     }
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };

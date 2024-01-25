@@ -11,7 +11,9 @@ export const createVote = async (req, res, next) => {
   let { votes } = req.body;
   let { electionid } = req.params;
   let id = req.user.id;
-  let user = await Voter.findOne({ where: { electionid, id } });
+  let user = await Voter.findOne({
+    where: { electionid, id, fullname: req.user.fullname },
+  });
 
   const votesDataArray = votes.map((data) => ({
     electionid,
@@ -26,7 +28,7 @@ export const createVote = async (req, res, next) => {
         .status(404)
         .send({ message: "Voting more than once is not allowed." });
     } else {
-      if (electionid) {
+      if (user) {
         await Ballot.bulkCreate(votesDataArray);
         await Voter.update(
           { voted: true },

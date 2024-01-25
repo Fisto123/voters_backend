@@ -14,8 +14,8 @@ const routes = express.Router({
   mergeParams: true,
 });
 
-// routes.post("/createaccount", register);
-// routes.patch("/activateaccount", activateUser);
+routes.post("/createaccount", register);
+routes.patch("/activateaccount", activateUser);
 routes.patch("/deactivateaccount", deactivateUser);
 routes.patch("/uploadprofilepicture/:userid", updateProfilePicture);
 routes.post("/adminlogin", adminLogin);

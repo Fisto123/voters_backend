@@ -40,9 +40,9 @@ db.user = userModel(sequelize, DataTypes);
 db.election = ElectionModel(sequelize, DataTypes);
 //i want to ask you for the best pratice while uploading large amount of datasets using node.. am building an election app where i have to upload the voters information using csv and using the election code to vote... how can i actually se
 
-// db.sequelize.sync({ force: false }).then(() => {
-//   console.log("yes re-sync done!!");
-// });
+db.sequelize.sync({ force: false }).then(() => {
+  console.log("yes re-sync done!!");
+});
 
 // await sequelize
 //   .sync({ alter: true })
