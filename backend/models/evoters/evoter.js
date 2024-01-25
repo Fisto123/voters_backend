@@ -36,6 +36,18 @@ export const EvoterModel = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: false,
     },
+    adminrole: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
+    firstname: { type: DataTypes.STRING, allowNull: true },
+    lastname: { type: DataTypes.STRING, allowNull: true },
+    hashpassword: { type: DataTypes.STRING, allowNull: true },
+    activationcode: { type: DataTypes.STRING, allowNull: true },
+    forgotcode: { type: DataTypes.STRING, allowNull: true },
+    dateactivated: { type: DataTypes.DATE, allowNull: true },
+    datedeactivated: { type: DataTypes.DATE, allowNull: true },
   });
 
   return Evoter;
