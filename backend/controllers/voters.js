@@ -14,7 +14,7 @@ import ElasticEmail from "@elasticemail/elasticemail-client-ts-axios";
 import crypto from "crypto";
 
 const { Configuration, EmailsApi } = ElasticEmail;
-const URL = "http://localhost:5173/vt";
+const URL = "https://voterz.michofat.com/vt";
 
 const config = new Configuration({
   apiKey:
