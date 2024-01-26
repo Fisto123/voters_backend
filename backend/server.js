@@ -19,6 +19,8 @@ app.use(
       "http://localhost:3001",
       "http://localhost:5173",
       "http://192.168.0.175:3000",
+      "https://voterz.michofat.com/adminlogin",
+      "https://voterz.michofat.com",
     ],
     credentials: true,
   })

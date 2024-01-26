@@ -46,20 +46,20 @@ export const createVote = async (req, res, next) => {
 
 export const voteResult = async (req, res, next) => {
   let { electionid } = req.params;
-
+  let election = await Voter.findOne({ where: { electionid } });
   try {
-    // Check if the election exists
     let user = await Voter.findOne({
       where: { electionid, adminid: req.user.id },
     });
-    let election = await Voter.findOne({ where: { electionid } });
+
     if (!user) {
       return res.status(404).send({ message: "Election doesn't exist" });
-    } else if (req.user.id !== election?.adminid) {
-      return res
-        .status(404)
-        .send({ message: "Cant view other people resource" });
     }
+    //  else if (req.user.id !== election?.adminid) {
+    //   return res
+    //     .status(404)
+    //     .send({ message: "Cant view other people resource" });
+    // }
 
     let positions = await Position.findAll({
       attributes: ["id", "positionname"],
